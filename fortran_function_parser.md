@@ -1,0 +1,18 @@
+project: fortran_function_parser
+project_dir: ./src
+output_dir: ./doc
+project_github: https://github.com/jacobwilliams/fortran_function_parser
+summary: Modern Fortran Function Parser
+author: Jacob Williams
+github: https://github.com/jacobwilliams
+predocmark_alt: >
+predocmark: <
+docmark_alt:
+docmark: !
+display: public
+         protected
+source: true
+graph: true
+extra_mods: iso_fortran_env:https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fFORTRAN_005fENV.html
+
+{!README.md!}
