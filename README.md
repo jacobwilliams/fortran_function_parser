@@ -111,7 +111,7 @@ as explicit constants these must conform to the format
 where `nnn` means any number of digits. The mantissa must contain at least
 one digit before or following an optional decimal point. Valid exponent
 identifiers are 'e', 'E', 'd' or 'D'. If they appear they must be followed
-by a valid exponent!
+by a valid exponent.
 
 ### Notes
 

@@ -22,40 +22,6 @@
 !  * Copyright (c) 2017, Jacob Williams. All rights reserved.
 !  * This software is distributable under the BSD license. See the terms of the
 !    BSD license in the documentation provided with this software.
-!
-!### Function string syntax
-!
-!  Although they have to be passed as array elements of the same declared
-!  length (Fortran restriction), the variable names can be of arbitrary
-!  actual length for the parser. Parsing for variables can be case sensitive
-!  or insensitive, depanding on input flag to the parser function.
-!
-!  The syntax of the function string is similar to the Fortran convention.
-!  Mathematical Operators recognized are `+`, `-,` `*,` `/,` `**` or alternatively `^`,
-!  whereas symbols for brackets must be `()`.
-!
-!  The function parser recognizes the (single argument) Fortran 90 intrinsic
-!  functions `abs`, `exp`, `log10`, `log`, `sqrt`, `sinh`, `cosh`, `tanh`,
-!  `sin`, `cos`, `tan`, `asin`, `acos`, `atan`.
-!  Parsing for intrinsic functions is always case INsensitive.
-!
-!  Operations are evaluated in the correct order:
-!
-!  * `()      `    expressions in brackets first
-!  * `-A      `    unary minus (or plus)
-!  * `A**B A^B`    exponentiation (`A` raised to the power `B`)
-!  * `A*B  A/B`    multiplication and division
-!  * `A+B  A-B`    addition and subtraction
-!
-!  The function string can contain integer or real constants. To be recognized
-!  as explicit constants these must conform to the format:
-!
-!  `[+|-][nnn][.nnn][e|E|d|D[+|-]nnn]`
-!
-!  where `nnn` means any number of digits. The mantissa must contain at least
-!  one digit before or following an optional decimal point. Valid exponent
-!  identifiers are 'e', 'E', 'd' or 'D'. If they appear they must be followed
-!  by a valid exponent.
 
     module function_parser
 
@@ -125,12 +91,13 @@
     integer,parameter :: error_asin_arg_illegal  = 4
     integer,parameter :: error_acos_arg_illegal  = 5
     integer,parameter :: error_invalid_operation = 6
-    character(len=25),dimension(6),parameter :: error_messages = [  'Division by zero         ', &    !1
-                                                                    'Argument of SQRT negative', &    !2
-                                                                    'Argument of LOG negative ', &    !3
-                                                                    'Argument of ASIN illegal ', &    !4
-                                                                    'Argument of ACOS illegal ', &    !5
-                                                                    'Invalid operation        '  ]
+    character(len=25),dimension(6),parameter :: error_messages = &
+        [ 'Division by zero         ', &    ! 1
+          'Argument of SQRT negative', &    ! 2
+          'Argument of LOG negative ', &    ! 3
+          'Argument of ASIN illegal ', &    ! 4
+          'Argument of ACOS illegal ', &    ! 5
+          'Invalid operation        '  ]
 
     type stack_func_container
         !! to create an array of the function pointers in the fparser
@@ -253,7 +220,7 @@
     character(len=*),intent(in)                :: funcstr         !! function string
     character(len=*), dimension(:), intent(in) :: var             !! array with variable names
     logical,intent(in)                         :: case_sensitive  !! are the variables case sensitive?
-    type(list_of_errors),intent(out)         :: error_msg       !! list of error messages
+    type(list_of_errors),intent(out)           :: error_msg       !! list of error messages
 
     character (len=len(funcstr))                 :: func     !! function string, local use
     character(len=len(var)),dimension(size(var)) :: tmp_var  !! variable list, local use
@@ -292,7 +259,7 @@
 
     class(fparser),intent(inout)        :: me
     real(wp), dimension(:), intent(in)  :: val       !! variable values
-    type(list_of_errors),intent(out)  :: error_msg !! error message list
+    type(list_of_errors),intent(out)    :: error_msg !! error message list
     real(wp),intent(out)                :: res       !! result
 
     integer :: ip   !! instruction pointer
@@ -332,7 +299,7 @@
     character(len=*),dimension(:),intent(in)   :: funcstr         !! function string array
     character(len=*),dimension(:),intent(in)   :: var             !! array with variable names
     logical,intent(in)                         :: case_sensitive  !! are the variables case sensitive?
-    type(list_of_errors),intent(out)         :: error_msg       !! list of error messages
+    type(list_of_errors),intent(out)           :: error_msg       !! list of error messages
 
     integer :: i       !! counter
     integer :: n_funcs !! number of functions in the class
@@ -361,7 +328,7 @@
 
     class(fparser_array),intent(inout)  :: me
     real(wp), dimension(:), intent(in)  :: val       !! variable values
-    type(list_of_errors),intent(out)  :: error_msg !! error message list
+    type(list_of_errors),intent(out)    :: error_msg !! error message list
     real(wp),dimension(:),intent(out)   :: res       !! result. Should be `size(me%f)`
 
     integer :: i       !! counter
@@ -889,7 +856,7 @@
     character(len=*),intent(in)               :: funcstr    !! original function string
     character(len=*), dimension(:),intent(in) :: var        !! array with variable names
     integer,dimension(:),intent(in)           :: ipos
-    type(list_of_errors),intent(inout)      :: error_msg  !! list of error messages
+    type(list_of_errors),intent(inout)        :: error_msg  !! list of error messages
 
     integer          :: n
     character(len=1) :: c
@@ -1031,7 +998,7 @@
     integer,intent(in)                   :: j
     integer,dimension(:),intent(in)      :: ipos
     character(len=*),intent(in)          :: funcstr     !! original function string
-    type(list_of_errors),intent(inout) :: error_msg   !! list of error messages
+    type(list_of_errors),intent(inout)   :: error_msg   !! list of error messages
     character(len=*),optional,intent(in) :: msg
 
     character(len=:),allocatable :: tmp !! to indicate where on
@@ -1196,7 +1163,7 @@
 
 !*******************************************************************************
 !>
-!  Compile function string F into bytecode
+!  Compile function string `f` into bytecode
 !
 !@note This is not very efficient since it is parsing it twice
 !      just to get the size of all the arrays.
@@ -1208,18 +1175,17 @@
     class(fparser),intent(inout)             :: me
     character(len=*),intent(in)              :: f            !! function string
     character(len=*),dimension(:),intent(in) :: var          !! array with variable names
-    type(list_of_errors),intent(inout)     :: error_msg    !! list of error messages
+    type(list_of_errors),intent(inout)       :: error_msg    !! list of error messages
 
-    integer :: istat
-
-    if (allocated(me%bytecode)) deallocate( me%bytecode,me%immed,me%stack,me%bytecode_ops )
+    integer :: istat  !! allocation status flag
 
     me%bytecodesize = 0
     me%immedsize    = 0
     me%stacksize    = 0
     me%stackptr     = 0
 
-    call compile_substr (me,f,1,len_trim(f),var)  ! compile string to determine size
+    ! compile string to determine size:
+    call compile_substr (me,f,1,len_trim(f),var)
 
     allocate ( me%bytecode(me%bytecodesize),      &
                me%bytecode_ops(me%bytecodesize),  &
@@ -1445,10 +1411,10 @@
 
 !*******************************************************************************
 !>
-!  Check if operator `F(j:j)` in string `F` is binary operator.
+!  Check if operator `f(j:j)` in string `f` is binary operator.
 !
 !  Special cases already covered elsewhere:              (that is corrected in v1.1)
-!  * operator character `F(j:j)` is first character of string (`j=1`)
+!  * operator character `f(j:j)` is first character of string (`j=1`)
 
     function is_binary_operator (j, f) result (res)
 
@@ -1465,7 +1431,7 @@
     if (f(j:j) == '+' .or. f(j:j) == '-') then               ! plus or minus sign:
        if (j == 1) then                                      ! - leading unary operator ?
           res = .false.
-       elseif (scan(f(j-1:j-1),'+-*/^(') > 0) then          ! - other unary operator ?
+       elseif (scan(f(j-1:j-1),'+-*/^(') > 0) then           ! - other unary operator ?
           res = .false.
        elseif (scan(f(j+1:j+1),'0123456789') > 0 .and. &     ! - in exponent of real number ?
                scan(f(j-1:j-1),'eEdD')       > 0) then
