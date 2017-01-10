@@ -335,9 +335,7 @@
     integer :: n_funcs !! number of functions in the class
 
     if (allocated(me%f)) then
-
         n_funcs = size(me%f)
-
         if (n_funcs == size(res)) then
             do i=1,n_funcs
                 call me%f(i)%evaluate(val,res(i),error_msg)
@@ -808,6 +806,9 @@
 !******************************************************************
 
 !******************************************************************
+!>
+!  atan function
+
     subroutine catan_func(me,ip,dp,sp,val,ierr)
 
     implicit none
@@ -867,100 +868,100 @@
 
     j = 1
     ParCnt = 0
-    lFunc = LEN_TRIM(Func)
+    lFunc = len_trim(Func)
 
-    step: DO
-       IF (j > lFunc) then
-            CALL add_error_message_to_list (j, ipos, FuncStr, error_msg)
+    step: do
+        if (j > lFunc) then
+            call error(j, ipos, FuncStr, error_msg)
             return
         end if
-       c = Func(j:j)
-       ! Check for valid operand (must appear)
-       IF (c == '-' .OR. c == '+') THEN                      ! Check for leading - or +
-          j = j+1
-          IF (j > lFunc) then
-              CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Missing operand')
-              return
+        c = Func(j:j)
+        ! Check for valid operand (must appear)
+        if (c == '-' .or. c == '+') then                      ! Check for leading - or +
+            j = j+1
+            if (j > lFunc) then
+                call error(j, ipos, FuncStr, error_msg, 'Missing operand')
+                return
             end if
-          c = Func(j:j)
-          IF (ANY(c == Ops)) then
-            CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Multiple operators')
+            c = Func(j:j)
+            if (any(c == Ops)) then
+                call error(j, ipos, FuncStr, error_msg, 'Multiple operators')
+                return
+            end if
+        end if
+        n = mathfunction_index (Func(j:))
+        if (n > 0) then                                       ! Check for math function
+            j = j+len_trim(Funcs(n))
+            if (j > lFunc) then
+                call error(j, ipos, FuncStr, error_msg, 'Missing function argument')
+                return
+            end if
+            c = Func(j:j)
+            if (c /= '(') then
+                call error(j, ipos, FuncStr, error_msg, 'Missing opening parenthesis')
+                return
+            end if
+        end if
+        if (c == '(') then                                    ! Check for opening parenthesis
+            ParCnt = ParCnt+1
+            j = j+1
+            cycle step
+        end if
+        if (scan(c,'0123456789.') > 0) then                   ! Check for number
+            r = string_to_real (Func(j:),ib,in,err)
+            if (err) then
+                call error(j, ipos, FuncStr, error_msg, 'Invalid number format:  '//Func(j+ib-1:j+in-2))
+                return
+            end if
+            j = j+in-1
+            if (j > lFunc) exit
+            c = Func(j:j)
+        else                                                  ! Check for variable
+            n = variable_index (Func(j:),Var,ib,in)
+            if (n == 0) then
+                call error(j, ipos, FuncStr, error_msg, 'Invalid element: '//Func(j+ib-1:j+in-2))
+                return
+            end if
+            j = j+in-1
+            if (j > lFunc) exit
+            c = Func(j:j)
+        end if
+        do while (c == ')')                                   ! Check for closing parenthesis
+            ParCnt = ParCnt-1
+            if (ParCnt < 0) then
+                call error(j, ipos, FuncStr, error_msg, 'Mismatched parenthesis')
+                return
+            end if
+            if (Func(j-1:j-1) == '(') then
+                call error(j-1, ipos, FuncStr, error_msg, 'Empty parentheses')
+                return
+            end if
+            j = j+1
+            if (j > lFunc) exit
+            c = Func(j:j)
+        end do
+        ! Now, we have a legal operand: A legal operator or end of string must follow
+        if (j > lFunc) exit
+        if (any(c == Ops)) then                               ! Check for multiple operators
+            if (j+1 > lFunc) then
+                call error(j, ipos, FuncStr, error_msg)
+                return
+            end if
+            if (any(Func(j+1:j+1) == Ops)) then
+                call error(j+1, ipos, FuncStr, error_msg, 'Multiple operators')
+                return
+            end if
+        else                                                  ! Check for next operand
+            call error(j, ipos, FuncStr, error_msg, 'Missing operator')
             return
-            end if
-       END IF
-       n = mathfunction_index (Func(j:))
-       IF (n > 0) THEN                                       ! Check for math function
-          j = j+LEN_TRIM(Funcs(n))
-          IF (j > lFunc) then
-                CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Missing function argument')
-                return
-            end if
-          c = Func(j:j)
-          IF (c /= '(') then
-              CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Missing opening parenthesis')
-              return
-            end if
-       END IF
-       IF (c == '(') THEN                                    ! Check for opening parenthesis
-          ParCnt = ParCnt+1
-          j = j+1
-          CYCLE step
-       END IF
-       IF (SCAN(c,'0123456789.') > 0) THEN                   ! Check for number
-          r = string_to_real (Func(j:),ib,in,err)
-          IF (err) then
-                CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Invalid number format:  '//Func(j+ib-1:j+in-2))
-                return
-            end if
-          j = j+in-1
-          IF (j > lFunc) EXIT
-          c = Func(j:j)
-       ELSE                                                  ! Check for variable
-          n = variable_index (Func(j:),Var,ib,in)
-          IF (n == 0) then
-              CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Invalid element: '//Func(j+ib-1:j+in-2))
-              return
-            end if
-          j = j+in-1
-          IF (j > lFunc) EXIT
-          c = Func(j:j)
-       END IF
-       DO WHILE (c == ')')                                   ! Check for closing parenthesis
-          ParCnt = ParCnt-1
-          IF (ParCnt < 0) then
-              CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Mismatched parenthesis')
-              return
-          end if
-          IF (Func(j-1:j-1) == '(') then
-              CALL add_error_message_to_list (j-1, ipos, FuncStr, error_msg, 'Empty parentheses')
-              return
-            end if
-          j = j+1
-          IF (j > lFunc) EXIT
-          c = Func(j:j)
-       END DO
-       ! Now, we have a legal operand: A legal operator or end of string must follow
-       IF (j > lFunc) EXIT
-       IF (ANY(c == Ops)) THEN                               ! Check for multiple operators
-          IF (j+1 > lFunc) then
-              CALL add_error_message_to_list (j, ipos, FuncStr, error_msg)
-              return
-            end if
-          IF (ANY(Func(j+1:j+1) == Ops)) then
-              CALL add_error_message_to_list (j+1, ipos, FuncStr, error_msg, 'Multiple operators')
-              return
-            end if
-       ELSE                                                  ! Check for next operand
-          CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Missing operator')
-          return
-       END IF
-       ! Now, we have an operand and an operator: the next loop will check for another
-       ! operand (must appear)
-       j = j+1
-    END DO step
+        end if
+        ! Now, we have an operand and an operator: the next loop will check for another
+        ! operand (must appear)
+        j = j+1
+    end do step
 
-    IF (ParCnt > 0) then
-        CALL add_error_message_to_list (j, ipos, FuncStr, error_msg, 'Missing )')
+    if (ParCnt > 0) then
+        call error(j, ipos, FuncStr, error_msg, 'Missing )')
         return
     end if
 
@@ -979,9 +980,9 @@
     character (len=len(error_messages))  :: msg    !! the error message string
 
     if (ierr == 0 .or. ierr > size(error_messages)) then
-       msg = ''
+        msg = ''
     else
-       msg = error_messages(ierr)
+        msg = error_messages(ierr)
     endif
 
     end function get_error_message_string
@@ -991,7 +992,7 @@
 !>
 !  add error message to the list
 
-    subroutine add_error_message_to_list (j, ipos, funcstr, error_msg, msg)
+    subroutine error (j, ipos, funcstr, error_msg, msg)
 
     implicit none
 
@@ -1005,9 +1006,9 @@
                                         !! the line the error occurs
 
     if (present(msg)) then
-       call error_msg%add('*** Error in syntax of function string: '//Msg)
+        call error_msg%add('*** Error in syntax of function string: '//Msg)
     else
-       call error_msg%add('*** Error in syntax of function string:')
+        call error_msg%add('*** Error in syntax of function string:')
     endif
 
     call error_msg%add(' '//trim(FuncStr))
@@ -1017,7 +1018,7 @@
 
     if (allocated(tmp)) deallocate(tmp)
 
-    end subroutine add_error_message_to_list
+    end subroutine error
 !*******************************************************************************
 
 !*******************************************************************************
@@ -1035,10 +1036,10 @@
 
     n = 0
     do j=cadd,cpow
-       if (c == ops(j)) then
-          n = j
-          exit
-       end if
+        if (c == ops(j)) then
+            n = j
+            exit
+        end if
     end do
 
     end function operator_index
@@ -1046,7 +1047,7 @@
 
 !*******************************************************************************
 !>
-!  return index of math function beginning at 1st position of string `str`
+!  Return index of math function beginning at 1st position of string `str`
 
     function mathfunction_index (str) result (n)
 
@@ -1091,18 +1092,18 @@
     n = 0
     lstr = len_trim(str)
     if (lstr > 0) then
-       do ib=1,lstr                                  ! search for first character in str
-          if (str(ib:ib) /= ' ') exit                ! when lstr>0 at least 1 char in str
-       end do
-       do in=ib,lstr                                 ! search for name terminators
-          if (scan(str(in:in),'+-*/^) ') > 0) exit   ! NOTE: all the operators must be here [cAdd,cSub,cMul,cDiv,cPow]
-       end do
-       do j=1,size(var)
-          if (str(ib:in-1) == var(j)) then
-             n = j                                   ! variable name found
-             exit
-          end if
-       end do
+        do ib=1,lstr                                   ! search for first character in str
+            if (str(ib:ib) /= ' ') exit                ! when lstr>0 at least 1 char in str
+        end do
+        do in=ib,lstr                                  ! search for name terminators
+            if (scan(str(in:in),'+-*/^) ') > 0) exit   ! NOTE: all the operators must be here [cAdd,cSub,cMul,cDiv,cPow]
+        end do
+        do j=1,size(var)
+            if (str(ib:in-1) == var(j)) then
+                n = j                                  ! variable name found
+                exit
+            end if
+        end do
     end if
     if (present(ibegin)) ibegin = ib
     if (present(inext))  inext  = in
@@ -1127,12 +1128,12 @@
     ipos = [ (k,k=1,lstr) ]
     k = 1
     do while (str(k:lstr) /= ' ')
-       if (str(k:k) == ' ') then
-          str(k:lstr)  = str(k+1:lstr)//' '    ! move 1 character to left
-          ipos(k:lstr) = [ ipos(k+1:lstr), 0 ] ! move 1 element to left
-          k = k-1
-       end if
-       k = k+1
+        if (str(k:k) == ' ') then
+            str(k:lstr)  = str(k+1:lstr)//' '    ! move 1 character to left
+            ipos(k:lstr) = [ ipos(k+1:lstr), 0 ] ! move 1 element to left
+            k = k-1
+        end if
+        k = k+1
     end do
 
   end subroutine remove_spaces
@@ -1155,7 +1156,7 @@
 
     lca = len(ca)
     do j=1,len_trim(str)-lca+1
-       if (str(j:j+lca-1) == ca) str(j:j+lca-1) = cb
+        if (str(j:j+lca-1) == ca) str(j:j+lca-1) = cb
     end do
 
     end subroutine replace_string
@@ -1194,13 +1195,13 @@
                stat = istat                       )
 
     if (istat /= 0) then
-       call error_msg%add('*** Parser error: Memory allocation for byte code failed')
+        call error_msg%add('*** Parser error: Memory allocation for byte code failed')
     else
-       me%bytecodesize = 0
-       me%immedsize    = 0
-       me%stacksize    = 0
-       me%stackptr     = 0
-       call compile_substr (me,f,1,len_trim(f),var) ! compile string into bytecode
+        me%bytecodesize = 0
+        me%immedsize    = 0
+        me%stacksize    = 0
+        me%stackptr     = 0
+        call compile_substr (me,f,1,len_trim(f),var) ! compile string into bytecode
     end if
 
     end subroutine compile
@@ -1302,16 +1303,16 @@
 
     res=.false.
     if (f(b:b) == '(' .and. f(e:e) == ')') then
-       k = 0
-       do j=b+1,e-1
-          if     (f(j:j) == '(') then
-             k = k+1
-          elseif (f(j:j) == ')') then
-             k = k-1
-          end if
-          if (k < 0) exit
-       end do
-       if (k == 0) res=.true.    ! all opened parenthesis closed
+        k = 0
+        do j=b+1,e-1
+            if (f(j:j) == '(') then
+                k = k+1
+            elseif (f(j:j) == ')') then
+                k = k-1
+            end if
+            if (k < 0) exit
+        end do
+        if (k == 0) res=.true.    ! all opened parenthesis closed
     end if
 
     end function completely_enclosed
@@ -1319,7 +1320,7 @@
 
 !*******************************************************************************
 !>
-!  Compile i-th function string F into bytecode
+!  Compile i-th function string `f` into bytecode
 
     recursive subroutine compile_substr (me, f, b, e, var)
 
@@ -1337,64 +1338,64 @@
                                             'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     ! check for special cases of substring
-    if     (f(b:b) == '+') then                               ! case 1: f(b:e) = '+...'
-       call compile_substr (me, f, b+1, e, var)
-       return
-    elseif (completely_enclosed (f, b, e)) then               ! case 2: f(b:e) = '(...)'
-       call compile_substr (me, f, b+1, e-1, var)
-       return
+    if (f(b:b) == '+') then                                     ! case 1: f(b:e) = '+...'
+        call compile_substr (me, f, b+1, e, var)
+        return
+    elseif (completely_enclosed (f, b, e)) then                 ! case 2: f(b:e) = '(...)'
+        call compile_substr (me, f, b+1, e-1, var)
+        return
     elseif (scan(f(b:b),calpha) > 0) then
-       n = mathfunction_index (f(b:e))
-       if (n > 0) then
-          b2 = b+index(f(b:e),'(')-1
-          if (completely_enclosed(f, b2, e)) then             ! case 3: f(b:e) = 'fcn(...)'
-             call compile_substr(me, f, b2+1, e-1, var)
-             call add_compiled_byte (me, n)
-             return
-          end if
-       end if
-    elseif (f(b:b) == '-') then
-       if (completely_enclosed (f, b+1, e)) then              ! case 4: f(b:e) = '-(...)'
-          call compile_substr (me, f, b+2, e-1, var)
-          call add_compiled_byte (me, cneg)
-          return
-       elseif (scan(f(b+1:b+1),calpha) > 0) then
-          n = mathfunction_index (f(b+1:e))
-          if (n > 0) then
-             b2 = b+index(f(b+1:e),'(')
-             if (completely_enclosed(f, b2, e)) then          ! case 5: f(b:e) = '-fcn(...)'
+        n = mathfunction_index (f(b:e))
+        if (n > 0) then
+            b2 = b+index(f(b:e),'(')-1
+            if (completely_enclosed(f, b2, e)) then             ! case 3: f(b:e) = 'fcn(...)'
                 call compile_substr(me, f, b2+1, e-1, var)
                 call add_compiled_byte (me, n)
-                call add_compiled_byte (me, cneg)
                 return
-             end if
-          end if
-       endif
+            end if
+        end if
+    elseif (f(b:b) == '-') then
+        if (completely_enclosed (f, b+1, e)) then               ! case 4: f(b:e) = '-(...)'
+            call compile_substr (me, f, b+2, e-1, var)
+            call add_compiled_byte (me, cneg)
+            return
+        elseif (scan(f(b+1:b+1),calpha) > 0) then
+            n = mathfunction_index (f(b+1:e))
+            if (n > 0) then
+                b2 = b+index(f(b+1:e),'(')
+                if (completely_enclosed(f, b2, e)) then          ! case 5: f(b:e) = '-fcn(...)'
+                    call compile_substr(me, f, b2+1, e-1, var)
+                    call add_compiled_byte (me, n)
+                    call add_compiled_byte (me, cneg)
+                    return
+                end if
+            end if
+        end if
     end if
 
     ! check for operator in substring: check only base level (k=0), exclude expr. in ()
     do io=cadd,cpow                                          ! increasing priority +-*/^
-       k = 0
-       do j=e,b,-1
-          if     (f(j:j) == ')') then
-             k = k+1
-          elseif (f(j:j) == '(') then
-             k = k-1
-          end if
-          if (k == 0 .and. f(j:j) == ops(io) .and. is_binary_operator (j, f)) then
-             if (any(f(j:j) == ops(cmul:cpow)) .and. f(b:b) == '-') then ! case 6: f(b:e) = '-...op...' with op > -
-                call compile_substr (me, f, b+1, e, var)
-                call add_compiled_byte (me, cneg)
-                return
-             else                                                        ! case 7: f(b:e) = '...binop...'
-                call compile_substr (me, f, b, j-1, var)
-                call compile_substr (me, f, j+1, e, var)
-                call add_compiled_byte (me, operator_index(ops(io)))
-                me%stackptr = me%stackptr - 1
-                return
-             end if
-          end if
-       end do
+        k = 0
+        do j=e,b,-1
+            if (f(j:j) == ')') then
+                k = k+1
+            elseif (f(j:j) == '(') then
+                k = k-1
+            end if
+            if (k == 0 .and. f(j:j) == ops(io) .and. is_binary_operator (j, f)) then
+                if (any(f(j:j) == ops(cmul:cpow)) .and. f(b:b) == '-') then ! case 6: f(b:e) = '-...op...' with op > -
+                    call compile_substr (me, f, b+1, e, var)
+                    call add_compiled_byte (me, cneg)
+                    return
+                else                                                        ! case 7: f(b:e) = '...binop...'
+                    call compile_substr (me, f, b, j-1, var)
+                    call compile_substr (me, f, j+1, e, var)
+                    call add_compiled_byte (me, operator_index(ops(io)))
+                    me%stackptr = me%stackptr - 1
+                    return
+                end if
+            end if
+        end do
     end do
 
     ! check for remaining items, i.e. variables or explicit numbers
@@ -1428,32 +1429,32 @@
     logical :: dflag,pflag
 
     res=.true.
-    if (f(j:j) == '+' .or. f(j:j) == '-') then               ! plus or minus sign:
-       if (j == 1) then                                      ! - leading unary operator ?
-          res = .false.
-       elseif (scan(f(j-1:j-1),'+-*/^(') > 0) then           ! - other unary operator ?
-          res = .false.
-       elseif (scan(f(j+1:j+1),'0123456789') > 0 .and. &     ! - in exponent of real number ?
-               scan(f(j-1:j-1),'eEdD')       > 0) then
-          dflag=.false.
-          pflag=.false.
-          k = j-1
-          do while (k > 1)                                   !   step to the left in mantissa
-             k = k-1
-             if     (scan(f(k:k),'0123456789') > 0) then
-                dflag=.true.
-             elseif (f(k:k) == '.') then
-                if (pflag) then
-                   exit                                      !   * exit: 2nd appearance of '.'
+    if (f(j:j) == '+' .or. f(j:j) == '-') then              ! plus or minus sign:
+        if (j == 1) then                                    ! - leading unary operator ?
+            res = .false.
+        elseif (scan(f(j-1:j-1),'+-*/^(') > 0) then         ! - other unary operator ?
+            res = .false.
+        elseif (scan(f(j+1:j+1),'0123456789') > 0 .and. &   ! - in exponent of real number ?
+                scan(f(j-1:j-1),'eEdD')       > 0) then
+            dflag=.false.
+            pflag=.false.
+            k = j-1
+            do while (k > 1)                                !   step to the left in mantissa
+                k = k-1
+                if (scan(f(k:k),'0123456789') > 0) then
+                    dflag=.true.
+                elseif (f(k:k) == '.') then
+                    if (pflag) then
+                        exit                                !   * exit: 2nd appearance of '.'
+                    else
+                        pflag=.true.                        !   * mark 1st appearance of '.'
+                    endif
                 else
-                   pflag=.true.                              !   * mark 1st appearance of '.'
-                endif
-             else
-                exit                                         !   * all other characters
-             end if
-          end do
-          if (dflag .and. (k == 1 .or. scan(f(k:k),'+-*/^(') > 0)) res = .false.
-       end if
+                    exit                                    !   * all other characters
+                end if
+            end do
+            if (dflag .and. (k == 1 .or. scan(f(k:k),'+-*/^(') > 0)) res = .false.
+        end if
     end if
 
     end function is_binary_operator
@@ -1492,59 +1493,59 @@
     InExp=.false.
     DInMan=.false.
     DInExp=.false.
-    ib   = 1
-    in   = 1
-    DO WHILE (in <= LEN_TRIM(str))
-       SELECT CASE (str(in:in))
-       CASE (' ')                                            ! Only leading blanks permitted
-          ib = ib+1
-          IF (InMan .OR. Eflag .OR. InExp) EXIT
-       CASE ('+','-')                                        ! Permitted only
-          IF     (Bflag) THEN
-             InMan=.true.; Bflag=.false.                     ! - at beginning of mantissa
-          ELSEIF (Eflag) THEN
-             InExp=.true.; Eflag=.false.                     ! - at beginning of exponent
-          ELSE
-             EXIT                                            ! - otherwise STOP
-          ENDIF
-       CASE ('0':'9')                                        ! Mark
-          IF     (Bflag) THEN
-             InMan=.true.; Bflag=.false.                     ! - beginning of mantissa
-          ELSEIF (Eflag) THEN
-             InExp=.true.; Eflag=.false.                     ! - beginning of exponent
-          ENDIF
-          IF (InMan) DInMan=.true.                           ! Mantissa contains digit
-          IF (InExp) DInExp=.true.                           ! Exponent contains digit
-       CASE ('.')
-          IF     (Bflag) THEN
-             Pflag=.true.                                    ! - mark 1st appearance of '.'
-             InMan=.true.; Bflag=.false.                     !   mark beginning of mantissa
-          ELSEIF (InMan .AND..NOT.Pflag) THEN
-             Pflag=.true.                                    ! - mark 1st appearance of '.'
-          ELSE
-             EXIT                                            ! - otherwise STOP
-          END IF
-       CASE ('e','E','d','D')                                ! Permitted only
-          IF (InMan) THEN
-             Eflag=.true.; InMan=.false.                     ! - following mantissa
-          ELSE
-             EXIT                                            ! - otherwise STOP
-          ENDIF
-       CASE DEFAULT
-          EXIT                                               ! STOP at all other characters
-       END SELECT
-       in = in+1
-    END DO
-    err = (ib > in-1) .OR. (.NOT.DInMan) .OR. ((Eflag.OR.InExp).AND..NOT.DInExp)
-    IF (err) THEN
+    ib = 1
+    in = 1
+    do while (in <= len_trim(str))
+        select case (str(in:in))
+        case (' ')                                   ! Only leading blanks permitted
+            ib = ib+1
+            if (InMan .or. Eflag .or. InExp) exit
+        case ('+','-')                               ! Permitted only
+            if (Bflag) then
+                InMan=.true.; Bflag=.false.          ! - at beginning of mantissa
+            elseif (Eflag) then
+                InExp=.true.; Eflag=.false.          ! - at beginning of exponent
+            else
+                exit                                 ! - otherwise STOP
+            endif
+        case ('0':'9')                               ! Mark
+            if (Bflag) then
+                InMan=.true.; Bflag=.false.          ! - beginning of mantissa
+            elseif (Eflag) then
+                InExp=.true.; Eflag=.false.          ! - beginning of exponent
+            endif
+            if (InMan) DInMan=.true.                 ! Mantissa contains digit
+            if (InExp) DInExp=.true.                 ! Exponent contains digit
+        case ('.')
+            if (Bflag) then
+                Pflag=.true.                         ! - mark 1st appearance of '.'
+                InMan=.true.; Bflag=.false.          !   mark beginning of mantissa
+            elseif (InMan .and..not.Pflag) then
+                Pflag=.true.                         ! - mark 1st appearance of '.'
+            else
+                exit                                 ! - otherwise STOP
+            end if
+        case ('e','E','d','D')                       ! Permitted only
+            if (InMan) then
+                Eflag=.true.; InMan=.false.          ! - following mantissa
+            else
+                exit                                 ! - otherwise STOP
+            endif
+        case default
+            exit                                     ! STOP at all other characters
+        end select
+        in = in+1
+    end do
+    err = (ib > in-1) .or. (.not.DInMan) .or. ((Eflag.or.InExp).and..not.DInExp)
+    if (err) then
        res = zero
-    ELSE
-       READ(str(ib:in-1),*,IOSTAT=istat) res
+    else
+       read(str(ib:in-1),*,iostat=istat) res
        err = istat /= 0
-    END IF
-    IF (PRESENT(ibegin)) ibegin = ib
-    IF (PRESENT(inext))  inext  = in
-    IF (PRESENT(error))  error  = err
+    end if
+    if (present(ibegin)) ibegin = ib
+    if (present(inext))  inext  = in
+    if (present(error))  error  = err
 
     end function string_to_real
 !*******************************************************************************
@@ -1567,8 +1568,8 @@
 
     str2 = str1
     do j=1,len_trim(str1)
-       k = index(uc,str1(j:j))
-       if (k > 0) str2(j:j) = lc(k:k)
+        k = index(uc,str1(j:j))
+        if (k > 0) str2(j:j) = lc(k:k)
     end do
 
     end subroutine to_lowercase
