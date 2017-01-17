@@ -32,8 +32,6 @@
 
     private
 
-    public :: list_of_errors  ! export this from the error_module
-
     !parameters:
     real(wp), parameter :: zero = 0.0_wp
     real(wp), parameter :: one  = 1.0_wp
@@ -123,6 +121,8 @@
         integer :: stacksize = 0
         integer :: stackptr = 0
 
+        type(list_of_errors) :: error_msg       !! list of error messages
+
     contains
 
         private
@@ -130,24 +130,37 @@
         procedure,public :: parse    => parse_function
         procedure,public :: evaluate => evaluate_function
         procedure,public :: destroy  => destroy_parser
+        procedure,public :: error
+        procedure,public :: print_errors
+        procedure,public :: clear_errors
+
+        procedure :: compile_substr
+        procedure :: compile
+        procedure :: check_syntax
+        procedure :: add_error
 
     end type fparser
     !****************************************************************
 
     !****************************************************************
     !>
-    !  So there is an easy way to evaluate an array of functions.
+    !  A wrapper to [[fparser]] to evaluate an array of functions.
     !
     !@note Each parser has the same variables.
 
       type,public :: fparser_array
           private
-          type(fparser),dimension(:),allocatable :: f  !! an array of parsers
+          type(fparser),dimension(:),allocatable :: f  !! An array of parsers.
+                                                       !! Each one has the
+                                                       !! same variables.
       contains
           private
-          procedure,public :: parse    => parse_function_array
-          procedure,public :: evaluate => evaluate_function_array
-          procedure,public :: destroy  => destroy_parser_array
+          procedure,public :: parse        => parse_function_array
+          procedure,public :: evaluate     => evaluate_function_array
+          procedure,public :: destroy      => destroy_parser_array
+          procedure,public :: error        => error_array
+          procedure,public :: print_errors => print_errors_array
+          procedure,public :: clear_errors => clear_errors_array
       end type fparser_array
       !****************************************************************
 
@@ -170,7 +183,121 @@
 
 !*******************************************************************************
 !>
+!  Returns true if there are any errors in the class.
+
+    pure elemental function error(me)
+
+    implicit none
+
+    class(fparser),intent(in) :: me
+    logical :: error !! true if there are any errors in the class
+
+    error = me%error_msg%has_errors()
+
+    end function error
+!*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Prints the error messages (if any) in the class.
+
+    subroutine print_errors(me,iunit)
+
+    implicit none
+
+    class(fparser),intent(inout) :: me
+    integer,intent(in) :: iunit  !! unit number for printing
+                                 !! (assumed to be open)
+
+    call me%error_msg%print(iunit)
+
+    end subroutine print_errors
+!*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Clears any error messages in the class.
+
+    pure elemental subroutine clear_errors(me)
+
+    implicit none
+
+    class(fparser),intent(inout) :: me
+
+    call me%error_msg%destroy()
+
+    end subroutine clear_errors
+!*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Returns true if there are any errors in the class.
+
+    pure elemental function error_array(me)
+
+    implicit none
+
+    class(fparser_array),intent(in) :: me
+    logical :: error_array !! true if there are any errors in the class
+
+    if (allocated(me%f)) then
+        error_array = any(me%f%error())
+    else
+        error_array = .false.
+    end if
+
+    end function error_array
+!*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Prints the error messages (if any) in the class.
+
+    subroutine print_errors_array(me,iunit)
+
+    implicit none
+
+    class(fparser_array),intent(inout) :: me
+    integer,intent(in) :: iunit  !! unit number for printing
+                                 !! (assumed to be open)
+
+    integer :: i  !! counter
+
+    if (allocated(me%f)) then
+        do i=1, size(me%f)
+            call me%f(i)%print_errors(iunit)
+        end do
+    end if
+
+    end subroutine print_errors_array
+!*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Clears any error messages in the class.
+
+    pure elemental subroutine clear_errors_array(me)
+
+    implicit none
+
+    class(fparser_array),intent(inout) :: me
+
+    integer :: i  !! counter
+
+    if (allocated(me%f)) then
+        do i=1, size(me%f)
+            call me%f(i)%clear_errors()
+        end do
+    end if
+
+    end subroutine clear_errors_array
+!*******************************************************************************
+
+!*******************************************************************************
+!>
 !  [[fparser]] destructor.
+!
+!  This can be called manually, and it is also called in [[parse_function]].
 
     pure elemental subroutine destroy_parser(me)
 
@@ -182,6 +309,8 @@
     if (allocated(me%immed))        deallocate(me%immed)
     if (allocated(me%stack))        deallocate(me%stack)
     if (allocated(me%bytecode_ops)) deallocate(me%bytecode_ops)
+
+    call me%error_msg%destroy()
 
     end subroutine destroy_parser
 !*******************************************************************************
@@ -212,19 +341,26 @@
 !>
 !  Parse the function string `funcstr` and compile it into bytecode
 
-    subroutine parse_function (me, funcstr, var, case_sensitive, error_msg)
+    subroutine parse_function (me, funcstr, var, case_sensitive)
 
     implicit none
 
     class(fparser),intent(inout)               :: me
     character(len=*),intent(in)                :: funcstr         !! function string
     character(len=*), dimension(:), intent(in) :: var             !! array with variable names
-    logical,intent(in)                         :: case_sensitive  !! are the variables case sensitive?
-    type(list_of_errors),intent(out)           :: error_msg       !! list of error messages
+    logical,intent(in),optional                :: case_sensitive  !! are the variables case sensitive?
+                                                                  !! [default is false]
 
     character (len=len(funcstr))                 :: func     !! function string, local use
     character(len=len(var)),dimension(size(var)) :: tmp_var  !! variable list, local use
     integer,dimension(:),allocatable             :: ipos
+    logical :: is_case_sensitive
+
+    if (present(case_sensitive)) then
+        is_case_sensitive = case_sensitive
+    else
+        is_case_sensitive = .false.
+    end if
 
     !first, initialize:
     call me%destroy()
@@ -242,8 +378,8 @@
     allocate (ipos(len_trim(funcstr)))        ! char. positions in orig. string
     call replace_string ('**','^ ',func)      ! exponent into 1-char. format
     call remove_spaces (func,ipos)            ! condense function string
-    call check_syntax (func,funcstr,tmp_var,ipos,error_msg)
-    call compile (me,func,tmp_var,error_msg)    !compile into bytecode:
+    call me%check_syntax(func,funcstr,tmp_var,ipos)
+    call me%compile(func,tmp_var)             !compile into bytecode
     deallocate (ipos)
 
     end subroutine parse_function
@@ -253,14 +389,13 @@
 !>
 !  Evaluate bytecode of function for the values passed in array `val`.
 
-    subroutine evaluate_function (me, val, res, error_msg)
+    subroutine evaluate_function (me, val, res)
 
     implicit none
 
     class(fparser),intent(inout)        :: me
-    real(wp), dimension(:), intent(in)  :: val       !! variable values
-    type(list_of_errors),intent(out)    :: error_msg !! error message list
-    real(wp),intent(out)                :: res       !! result
+    real(wp), dimension(:), intent(in)  :: val  !! variable values
+    real(wp),intent(out)                :: res  !! result
 
     integer :: ip   !! instruction pointer
     integer :: dp   !! data pointer
@@ -275,7 +410,7 @@
     do ip=1,me%bytecodesize
         call me%bytecode_ops(ip)%f(me,ip,dp,sp,val,ierr)
         if (ierr/=0) then
-            call error_msg%add(trim(get_error_message_string(ierr)))
+            call me%error_msg%add(trim(get_error_message_string(ierr)))
             res = zero
             return
         end if
@@ -291,15 +426,15 @@
 !>
 !  Alternate version of [[parse_function]] for the [[fparser_array]] class.
 
-    subroutine parse_function_array (me, funcstr, var, case_sensitive, error_msg)
+    subroutine parse_function_array (me, funcstr, var, case_sensitive)
 
     implicit none
 
     class(fparser_array),intent(inout)         :: me
     character(len=*),dimension(:),intent(in)   :: funcstr         !! function string array
     character(len=*),dimension(:),intent(in)   :: var             !! array with variable names
-    logical,intent(in)                         :: case_sensitive  !! are the variables case sensitive?
-    type(list_of_errors),intent(out)           :: error_msg       !! list of error messages
+    logical,intent(in),optional                :: case_sensitive  !! are the variables case sensitive?
+                                                                  !! [default is false]
 
     integer :: i       !! counter
     integer :: n_funcs !! number of functions in the class
@@ -311,8 +446,8 @@
     allocate(me%f(n_funcs))
 
     do i=1,n_funcs
-        call me%f(i)%parse(funcstr(i),var,case_sensitive,error_msg)
-        if (error_msg%has_errors()) exit  ! stop if there are any errors
+        call me%f(i)%parse(funcstr(i),var,case_sensitive)
+        if (me%f(i)%error_msg%has_errors()) exit  ! stop if there are any errors
     end do
 
     end subroutine parse_function_array
@@ -322,14 +457,13 @@
 !>
 !  Alternate version of [[evaluate_function]] for the [[fparser_array]] class.
 
-    subroutine evaluate_function_array (me, val, res, error_msg)
+    subroutine evaluate_function_array (me, val, res)
 
     implicit none
 
     class(fparser_array),intent(inout)  :: me
-    real(wp), dimension(:), intent(in)  :: val       !! variable values
-    type(list_of_errors),intent(out)    :: error_msg !! error message list
-    real(wp),dimension(:),intent(out)   :: res       !! result. Should be `size(me%f)`
+    real(wp), dimension(:), intent(in)  :: val  !! variable values
+    real(wp),dimension(:),intent(out)   :: res  !! result. Should be `size(me%f)`
 
     integer :: i       !! counter
     integer :: n_funcs !! number of functions in the class
@@ -338,15 +472,15 @@
         n_funcs = size(me%f)
         if (n_funcs == size(res)) then
             do i=1,n_funcs
-                call me%f(i)%evaluate(val,res(i),error_msg)
-                if (error_msg%has_errors()) exit  ! stop if there are any errors
+                call me%f(i)%evaluate(val,res(i))
+                if (me%f(i)%error_msg%has_errors()) exit  ! stop if there are any errors
             end do
         else
-            call error_msg%add('Error: the res vector is not the correct size.')
+            call me%f(i)%error_msg%add('Error: the res vector is not the correct size.')
             res = zero
         end if
     else
-        call error_msg%add('Error: the fparser_array has not been initialized.')
+        call me%f(i)%error_msg%add('Error: the fparser_array has not been initialized.')
         res = zero
     end if
 
@@ -849,15 +983,15 @@
 !>
 !  Check syntax of function string.
 
-    subroutine check_syntax (func,funcstr,var,ipos,error_msg)
+    subroutine check_syntax (me,func,funcstr,var,ipos)
 
     implicit none
 
+    class(fparser),intent(inout)              :: me
     character(len=*),intent(in)               :: func       !! function string without spaces
     character(len=*),intent(in)               :: funcstr    !! original function string
     character(len=*), dimension(:),intent(in) :: var        !! array with variable names
     integer,dimension(:),intent(in)           :: ipos
-    type(list_of_errors),intent(inout)        :: error_msg  !! list of error messages
 
     integer          :: n
     character(len=1) :: c
@@ -872,7 +1006,7 @@
 
     step: do
         if (j > lFunc) then
-            call error(j, ipos, FuncStr, error_msg)
+            call me%add_error(j, ipos, FuncStr)
             return
         end if
         c = Func(j:j)
@@ -880,12 +1014,12 @@
         if (c == '-' .or. c == '+') then                      ! Check for leading - or +
             j = j+1
             if (j > lFunc) then
-                call error(j, ipos, FuncStr, error_msg, 'Missing operand')
+                call me%add_error(j, ipos, FuncStr, 'Missing operand')
                 return
             end if
             c = Func(j:j)
             if (any(c == Ops)) then
-                call error(j, ipos, FuncStr, error_msg, 'Multiple operators')
+                call me%add_error(j, ipos, FuncStr, 'Multiple operators')
                 return
             end if
         end if
@@ -893,12 +1027,12 @@
         if (n > 0) then                                       ! Check for math function
             j = j+len_trim(Funcs(n))
             if (j > lFunc) then
-                call error(j, ipos, FuncStr, error_msg, 'Missing function argument')
+                call me%add_error(j, ipos, FuncStr, 'Missing function argument')
                 return
             end if
             c = Func(j:j)
             if (c /= '(') then
-                call error(j, ipos, FuncStr, error_msg, 'Missing opening parenthesis')
+                call me%add_error(j, ipos, FuncStr, 'Missing opening parenthesis')
                 return
             end if
         end if
@@ -910,7 +1044,7 @@
         if (scan(c,'0123456789.') > 0) then                   ! Check for number
             r = string_to_real (Func(j:),ib,in,err)
             if (err) then
-                call error(j, ipos, FuncStr, error_msg, 'Invalid number format:  '//Func(j+ib-1:j+in-2))
+                call me%add_error(j, ipos, FuncStr, 'Invalid number format:  '//Func(j+ib-1:j+in-2))
                 return
             end if
             j = j+in-1
@@ -919,7 +1053,7 @@
         else                                                  ! Check for variable
             n = variable_index (Func(j:),Var,ib,in)
             if (n == 0) then
-                call error(j, ipos, FuncStr, error_msg, 'Invalid element: '//Func(j+ib-1:j+in-2))
+                call me%add_error(j, ipos, FuncStr, 'Invalid element: '//Func(j+ib-1:j+in-2))
                 return
             end if
             j = j+in-1
@@ -929,11 +1063,11 @@
         do while (c == ')')                                   ! Check for closing parenthesis
             ParCnt = ParCnt-1
             if (ParCnt < 0) then
-                call error(j, ipos, FuncStr, error_msg, 'Mismatched parenthesis')
+                call me%add_error(j, ipos, FuncStr, 'Mismatched parenthesis')
                 return
             end if
             if (Func(j-1:j-1) == '(') then
-                call error(j-1, ipos, FuncStr, error_msg, 'Empty parentheses')
+                call me%add_error(j-1, ipos, FuncStr, 'Empty parentheses')
                 return
             end if
             j = j+1
@@ -944,15 +1078,15 @@
         if (j > lFunc) exit
         if (any(c == Ops)) then                               ! Check for multiple operators
             if (j+1 > lFunc) then
-                call error(j, ipos, FuncStr, error_msg)
+                call me%add_error(j, ipos, FuncStr)
                 return
             end if
             if (any(Func(j+1:j+1) == Ops)) then
-                call error(j+1, ipos, FuncStr, error_msg, 'Multiple operators')
+                call me%add_error(j+1, ipos, FuncStr, 'Multiple operators')
                 return
             end if
         else                                                  ! Check for next operand
-            call error(j, ipos, FuncStr, error_msg, 'Missing operator')
+            call me%add_error(j, ipos, FuncStr, 'Missing operator')
             return
         end if
         ! Now, we have an operand and an operator: the next loop will check for another
@@ -961,7 +1095,7 @@
     end do step
 
     if (ParCnt > 0) then
-        call error(j, ipos, FuncStr, error_msg, 'Missing )')
+        call me%add_error(j, ipos, FuncStr, 'Missing )')
         return
     end if
 
@@ -970,7 +1104,7 @@
 
 !*******************************************************************************
 !>
-!  return error message string
+!  return error message string, given the error code.
 
     function get_error_message_string (ierr) result (msg)
 
@@ -990,35 +1124,34 @@
 
 !*******************************************************************************
 !>
-!  add error message to the list
+!  add error message to the class.
 
-    subroutine error (j, ipos, funcstr, error_msg, msg)
+    subroutine add_error (me, j, ipos, funcstr, msg)
 
     implicit none
 
+    class(fparser),intent(inout)         :: me
     integer,intent(in)                   :: j
     integer,dimension(:),intent(in)      :: ipos
     character(len=*),intent(in)          :: funcstr     !! original function string
-    type(list_of_errors),intent(inout)   :: error_msg   !! list of error messages
     character(len=*),optional,intent(in) :: msg
 
     character(len=:),allocatable :: tmp !! to indicate where on
                                         !! the line the error occurs
 
     if (present(msg)) then
-        call error_msg%add('*** Error in syntax of function string: '//Msg)
+        call me%error_msg%add('*** Error in syntax of function string: '//Msg)
     else
-        call error_msg%add('*** Error in syntax of function string:')
+        call me%error_msg%add('*** Error in syntax of function string:')
     endif
 
-    call error_msg%add(' '//trim(FuncStr))
+    call me%error_msg%add(' '//trim(FuncStr))
 
-    tmp = repeat(' ',ipos(j))            ! Advance to the jth position
-    call error_msg%add(tmp//'?')
+    tmp = repeat(' ',ipos(j))//'?'     ! Advance to the jth position
+    call me%error_msg%add(tmp)
+    deallocate(tmp)
 
-    if (allocated(tmp)) deallocate(tmp)
-
-    end subroutine error
+    end subroutine add_error
 !*******************************************************************************
 
 !*******************************************************************************
@@ -1169,14 +1302,13 @@
 !@note This is not very efficient since it is parsing it twice
 !      just to get the size of all the arrays.
 
-    subroutine compile (me, f, var, error_msg)
+    subroutine compile (me, f, var)
 
     implicit none
 
     class(fparser),intent(inout)             :: me
-    character(len=*),intent(in)              :: f            !! function string
-    character(len=*),dimension(:),intent(in) :: var          !! array with variable names
-    type(list_of_errors),intent(inout)       :: error_msg    !! list of error messages
+    character(len=*),intent(in)              :: f      !! function string
+    character(len=*),dimension(:),intent(in) :: var    !! array with variable names
 
     integer :: istat  !! allocation status flag
 
@@ -1186,7 +1318,7 @@
     me%stackptr     = 0
 
     ! compile string to determine size:
-    call compile_substr (me,f,1,len_trim(f),var)
+    call me%compile_substr (f,1,len_trim(f),var)
 
     allocate ( me%bytecode(me%bytecodesize),      &
                me%bytecode_ops(me%bytecodesize),  &
@@ -1195,13 +1327,13 @@
                stat = istat                       )
 
     if (istat /= 0) then
-        call error_msg%add('*** Parser error: Memory allocation for byte code failed')
+        call me%error_msg%add('*** Parser error: Memory allocation for byte code failed')
     else
         me%bytecodesize = 0
         me%immedsize    = 0
         me%stacksize    = 0
         me%stackptr     = 0
-        call compile_substr (me,f,1,len_trim(f),var) ! compile string into bytecode
+        call me%compile_substr (f,1,len_trim(f),var) ! compile string into bytecode
     end if
 
     end subroutine compile

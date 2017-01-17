@@ -2,7 +2,7 @@
 !> author: Jacob Williams
 !  license: BSD
 !
-!  A simple linked list for storing error messages.
+!  A simple type for storing error messages.
 !  Used by the [[function_parser] module.
 !
 !@note The error message is stored internally as an
@@ -19,15 +19,15 @@
         !! A error message in the [[list_of_errors]].
         private
         character(len=:),allocatable :: content  !! the error message string
-        type(error),pointer :: next => null()  !! next error message in the list
     end type error
 
     type,public :: list_of_errors
         !! A list of errors.
+        !!
+        !! This is implemented as a simple allocatable
+        !! array of [[error]] types.
         private
-        integer :: n_errors = 0 !! number of errors in the list
-        type(error),pointer :: head => null()  !! first error in the list
-        type(error),pointer :: tail => null()  !! last error in the list
+        type(error),dimension(:),allocatable :: head !! the error list
     contains
         private
         procedure,public :: add        => add_error_to_list
@@ -44,7 +44,7 @@
 !>
 !  Will be called automatically when the list goes out of scope.
 
-    subroutine list_finalizer(me)
+    pure elemental subroutine list_finalizer(me)
 
     implicit none
 
@@ -59,35 +59,25 @@
 !>
 !  To manually destroy the list.
 !
-!  This list must be destroyed when finished in order to present a memory leak.
-!
 !  Also note that there is a finalizer in the [[list_of_errors]],
 !  so if the caller doesn't call this routine, it will be destroyed
 !  when it goes out of scope, assuming the compiler is standard-conforming.
 
-
-    subroutine destroy_list(me)
+    pure elemental subroutine destroy_list(me)
 
     implicit none
 
     class(list_of_errors),intent(inout) :: me
 
-    type(error),pointer :: p  !! temp pointer
-    type(error),pointer :: q  !! temp pointer
+    integer :: i !! counter
 
-    p => me%head
-    do
-        if (.not. associated(p)) exit
-        q => p%next
-        deallocate(p%content)
-        deallocate(p)
-        nullify(p)
-        p => q
-    end do
-
-    nullify(me%head)
-    nullify(me%tail)
-    me%n_errors = 0
+    if (allocated(me%head)) then
+        do i = 1, size(me%head)
+            if (allocated(me%head(i)%content)) &
+                deallocate(me%head(i)%content)
+        end do
+        deallocate(me%head)
+    end if
 
     end subroutine destroy_list
 !*******************************************************************************
@@ -103,17 +93,24 @@
     class(list_of_errors),intent(inout) :: me
     character(len=*),intent(in) :: string  !! the error message to add.
 
-    if (.not. associated(me%head)) then
+    type(error),dimension(:),allocatable :: tmp !! for expanding the array
+    integer :: n !! number of errors currently in the list
+
+    if (.not. allocated(me%head)) then
+
         !first error in the list
-        me%n_errors = 1
-        allocate(me%head)
-        me%head%content = string
-        me%tail => me%head
+        allocate(me%head(1))
+        me%head(1)%content = string
+
     else
-        me%n_errors = me%n_errors + 1
-        allocate(me%tail%next)
-        me%tail%next%content = string
-        me%tail => me%tail%next
+
+        ! add to the list
+        n = size(me%head)
+        allocate(tmp(n+1))
+        tmp(1:n) = me%head
+        tmp(n+1)%content = string
+        call move_alloc(tmp,me%head)
+
     end if
 
     end subroutine add_error_to_list
@@ -123,14 +120,14 @@
 !>
 !  Returns true if the list contains any error messages.
 
-    function list_has_errors(me)
+    pure elemental function list_has_errors(me)
 
     implicit none
 
     class(list_of_errors),intent(in) :: me
     logical :: list_has_errors
 
-    list_has_errors = associated(me%head)
+    list_has_errors = allocated(me%head)
 
     end function list_has_errors
 !*******************************************************************************
@@ -147,15 +144,13 @@
     integer,intent(in) :: iunit  !! unit number for printing
                                  !! (assumed to be open)
 
-    type(error),pointer :: p  !! temp pointer
     integer :: i !! counter
 
-    p => me%head
-    do
-        if (.not. associated(p)) exit
-        write(iunit,fmt='(A)') p%content
-        p => p%next
-    end do
+    if (allocated(me%head)) then
+        do i = 1, size(me%head)
+            write(iunit,fmt='(A)') me%head(i)%content
+        end do
+    end if
 
     end subroutine print_errors
 !*******************************************************************************
