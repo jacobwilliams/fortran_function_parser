@@ -1,7 +1,7 @@
 !*******************************************************************************
 !> license: BSD
 !
-!  Test cases for the function parser module
+!  Test cases for the function parser module.
 
     program tests
 
@@ -29,7 +29,6 @@
     real(wp),dimension(nvar),parameter :: val  = [  2.0_wp  ]
 
     type(fparser) :: parser
-    type(list_of_errors) :: error_msg
     real(wp) :: res
     real(wp) :: x
 
@@ -37,15 +36,15 @@
     write(*,*) ' Test 1'
     write(*,*) ''
 
-    call parser%parse(func, var, .false., error_msg)  ! parse and bytecompile function string
-    if (error_msg%has_errors()) then
-        call error_msg%print(output_unit)
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
     else
 
         write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res,error_msg)  ! interprete bytecode representation of function
-        if (error_msg%has_errors()) then
-            call error_msg%print(output_unit)
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
         else
             write(*,*) func,'=',res
             write(*,*)'==> direct evaluation:'
@@ -77,7 +76,6 @@
                                                    1.0_wp, 5.0_wp, 6.0_wp ]
 
     type(fparser_array) :: parser
-    type(list_of_errors) :: error_msg
     real(wp),dimension(nfunc) :: res
     integer :: i  !! counter
     real(wp) :: a0,b0,a1,b1,a3,b3
@@ -86,15 +84,15 @@
     write(*,*) ' Test 2'
     write(*,*) ''
 
-    call parser%parse(func, var, .false., error_msg)  ! parse and bytecompile function string
-    if (error_msg%has_errors()) then
-        call error_msg%print(output_unit)
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
     else
 
         write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res,error_msg)  ! interprete bytecode representation of function
-        if (error_msg%has_errors()) then
-            call error_msg%print(output_unit)
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
         else
             do i=1,nfunc
                 write(*,*) func(i),'=',res(i)
@@ -131,7 +129,6 @@
     real(wp),          dimension(nvar),  parameter :: val  = [  10., 1.5, 2.0  ]
 
     type(fparser_array) :: parser
-    type(list_of_errors) :: error_msg
     real(wp),dimension(nfunc) :: res
     integer :: i  !! counter
     real(wp) :: vel,alpha,beta
@@ -140,15 +137,15 @@
     write(*,*) ' Test 3'
     write(*,*) ''
 
-    call parser%parse(func, var, .false., error_msg)  ! parse and bytecompile function string
-    if (error_msg%has_errors()) then
-        call error_msg%print(output_unit)
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
     else
 
         write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res,error_msg)  ! interprete bytecode representation of function
-        if (error_msg%has_errors()) then
-            call error_msg%print(output_unit)
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
         else
             do i=1,nfunc
                 write(*,*) func(i),'=',res(i)
@@ -186,7 +183,6 @@
     real(wp), dimension(nvar),  parameter :: val  = [  10., 1.5, 2.0  ]
 
     type(fparser_array) :: parser
-    type(list_of_errors) :: error_msg
     real(wp),dimension(nfunc) :: res
     integer  :: i,n
     real     :: rt1,rt2,rt3
@@ -196,9 +192,9 @@
     write(*,*) ' Test 4'
     write(*,*) ''
 
-    call parser%parse(func, var, .false., error_msg)  ! parse and bytecompile function string
-    if (error_msg%has_errors()) then
-        call error_msg%print(output_unit)
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
     else
 
         vel   = val(1)
@@ -206,9 +202,9 @@
         beta  = val(3)
         call cpu_time (rt1)
         do n=1,neval
-            call parser%evaluate(val,res,error_msg)  ! interprete bytecode representation of function
-            if (error_msg%has_errors()) then
-                call error_msg%print(output_unit)
+            call parser%evaluate(val,res)  ! interprete bytecode representation of function
+            if (parser%error()) then
+                call parser%print_errors(output_unit)
                 return
             end if
         end do
@@ -247,7 +243,6 @@
     real(wp),dimension(1),parameter :: val  = [0.0_wp]    !! not really used here
 
     type(fparser) :: parser
-    type(list_of_errors) :: error_msg
     real(wp) :: res
     real(wp) :: x
 
@@ -255,14 +250,14 @@
     write(*,*) ' Test 5'
     write(*,*) ''
 
-    call parser%parse(func, var, .false., error_msg)  ! parse and bytecompile function string
-    if (error_msg%has_errors()) then
-        call error_msg%print(output_unit)
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
     else
         write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res,error_msg)  ! interprete bytecode representation of function
-        if (error_msg%has_errors()) then
-            call error_msg%print(output_unit)
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
         else
             write(*,*) func,'=',res
         end if
@@ -288,7 +283,6 @@
     real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, 3.0_wp, 4.0_wp ]
 
     type(fparser_array) :: parser
-    type(list_of_errors) :: error_msg
     real(wp),dimension(nfunc) :: res
     integer :: i  !! counter
     real(wp) :: x,a,b
@@ -297,15 +291,15 @@
     write(*,*) ' Test 6'
     write(*,*) ''
 
-    call parser%parse(func, var, .false., error_msg)  ! parse and bytecompile function string
-    if (error_msg%has_errors()) then
-        call error_msg%print(output_unit)
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
     else
 
         write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res,error_msg)  ! interprete bytecode representation of function
-        if (error_msg%has_errors()) then
-            call error_msg%print(output_unit)
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
         else
             do i=1,nfunc
                 write(*,*) func(i),'=',res(i)
