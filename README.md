@@ -27,7 +27,7 @@ A single function string `funcstr` can be parsed (checked and compiled) into
 bytecode by calling the `fparser` class method subroutine `parse`:
 
 ```fortran
-call me%parse(funcstr, var, case_sensitive, error_msg)
+call me%parse(funcstr, var, case_sensitive)
 ```
 
 The variable names as they appear in the string `funcstr` have to be passed
@@ -44,7 +44,7 @@ The function value is evaluated for a specific set of variable values
 by calling the `fparser` class method subroutine `evaluate`:
 
 ```fortran
-call me%evaluate(val, res, error_msg)
+call me%evaluate(val, res)
 ```
 
 The variable values are passed in the one-dimensional array `val` which must
