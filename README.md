@@ -64,21 +64,17 @@ call me%destroy()
 
 ### Error handling
 
-Errors are reported using the `error_msg` output of the `parse` and `evaluate`
-methods. This is variable of type `list_of_errors`, which is also exported
-by the `function_parser` module.
+Errors can be reported by both the `parse` and `evaluate`
+class methods. To check for errors, use the `error` method, and to print them use the `print_errors` method:
 
-* An error in the function parsing step leads to a detailed error message
-(Type and position of error) returned in the `error_msg` output of the
-`parse` method.
+```fortran
+ if (me%error()) then
+     me%print_errors(output_unit)
+ end if
+```
 
-* An error during function evaluation returns a function value of 0.0 and
-an error message returned in the `error_msg` output of the
-`evaluate` method.
-
-To check if a `list_of_errors` class contains a message, use the
-`has_errors` method.
-The `print` method can also be used to print the error messages.
+An error in the function parsing step leads to a detailed error message
+(type and position of error). An error during function evaluation returns a function value of 0.0.
 
 ### Function string syntax
 
@@ -125,5 +121,6 @@ by a valid exponent.
   from [here](http://fparser.sourceforge.net).
 * The function parser concept is based on a C++ class library written by
   Juha Nieminen <warp@iki.fi> available from [here](http://warp.povusers.org/FunctionParser/).
-* The code has been updated to Fortran 2008 by Jacob Williams. Development
+* The original code has been updated to Fortran 2008 by Jacob Williams. Development
   continues on [GitHub](https://github.com/jacobwilliams/fortran_function_parser).
+* Note that another refactoring of the original code is available [here](https://github.com/jacopo-chevallard/FortranParser).
