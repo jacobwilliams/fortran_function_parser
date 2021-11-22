@@ -366,7 +366,7 @@
     call me%destroy()
 
     !if is case insensitive, then convert both to lowercase:
-    if (case_sensitive) then
+    if (is_case_sensitive) then
         func    = funcstr   ! local copy of function string
         tmp_var = var
     else
