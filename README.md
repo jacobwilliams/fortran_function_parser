@@ -1,3 +1,6 @@
+![fortran_function_parser](/media/logo.png)
+============
+
 ### Status
 
 [![GitHub release](https://img.shields.io/github/release/jacobwilliams/fortran_function_parser.svg)](https://github.com/jacobwilliams/fortran_function_parser/releases/latest)
