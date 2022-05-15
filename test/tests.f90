@@ -16,6 +16,7 @@
     call fptest4()
     call fptest5()
     call fptest6()
+    call error_tests()
 
     contains
 !*******************************************************************************
@@ -301,6 +302,81 @@
 
     end subroutine fptest6
 !*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Test some of the error cases.
+
+    subroutine error_tests()
+
+    implicit none
+
+    integer, parameter :: nvar = 3
+    character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
+                                                                'a', &
+                                                                'b'  ]
+    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, 3.0_wp, 4.0_wp ]
+    type(fparser_array) :: parser
+
+    write(*,*) ''
+    write(*,*) ' Test 7 - Test error conditions'
+    write(*,*) ''
+
+    call parse_error(parser,'st(-x)',var,val)
+    call parse_error(parser,'x * 452d3234.2323',var,val)
+    call parse_error(parser,'x * (123',var,val)
+    call parse_error(parser,'x +-* y',var,val)
+    call parse_error(parser,'x + sin',var,val)
+    call parse_error(parser,'x + ()',var,val)
+    call parse_error(parser,'x +',var,val)
+
+    call eval_error(parser,'sqrt(-x)',var,val)
+    call eval_error(parser,'acos(10.0)',var,val)
+    call eval_error(parser,'asin(10.0)',var,val)
+    call eval_error(parser,'log(-x)',var,val)
+    call eval_error(parser,'1/0',var,val)
+
+    end subroutine error_tests
+!*******************************************************************************
+
+    subroutine parse_error(parser,str,var,val)
+        type(fparser_array),intent(inout) :: parser
+        character(len=*),intent(in) :: str !! expression with a parsing error
+        real(wp),dimension(1) :: res
+        character(len=*),dimension(:),intent(in) :: var
+        real(wp),dimension(:),intent(in) :: val
+        call parser%parse([str], var, .false.)  ! parse and bytecompile function string
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
+            write(*,*) 'PASSED : parsing error'
+        else 
+            error stop 'FAILED : there should have been a parsing error'
+        end if
+        call parser%clear_errors()
+        call parser%destroy()
+    end subroutine parse_error
+
+    subroutine eval_error(parser,str,var,val)
+        type(fparser_array),intent(inout) :: parser
+        character(len=*),intent(in) :: str !! expression with a parsing error
+        real(wp),dimension(1) :: res
+        character(len=*),dimension(:),intent(in) :: var
+        real(wp),dimension(:),intent(in) :: val
+        call parser%parse([str], var, .false.)  ! parse and bytecompile function string
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
+            error stop
+        end if
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+        if (parser%error()) then
+            call parser%print_errors(output_unit)
+            write(*,*) 'PASSED : evaluation errors detected'
+        else
+            error stop 'FAILED : there should have been evaluation errors'
+        end if        
+        call parser%clear_errors()
+        call parser%destroy()
+    end subroutine eval_error
 
 !*******************************************************************************
 !>
