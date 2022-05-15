@@ -39,18 +39,15 @@
     call parser%parse(func, var, .false.)  ! parse and bytecompile function string
     if (parser%error()) then
         call parser%print_errors(output_unit)
-    else
+        error stop
+    end if
 
-        write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res)  ! interprete bytecode representation of function
-        if (parser%error()) then
-            call parser%print_errors(output_unit)
-        else
-            write(*,*) func,'=',res
-            write(*,*)'==> direct evaluation:'
-            x  = val(1)
-            write(*,*)'-x=',-x
-        end if
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+    else
+        x  = val(1)
+        call compare('-x', -x, res)
     end if
 
     end subroutine fptest
@@ -87,27 +84,22 @@
     call parser%parse(func, var, .false.)  ! parse and bytecompile function string
     if (parser%error()) then
         call parser%print_errors(output_unit)
-    else
+        error stop
+    end if
 
-        write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res)  ! interprete bytecode representation of function
-        if (parser%error()) then
-            call parser%print_errors(output_unit)
-        else
-            do i=1,nfunc
-                write(*,*) func(i),'=',res(i)
-            end do
-            write(*,*)'==> direct evaluation:'
-            a0 = val(1)
-            b0 = val(2)
-            a1 = val(3)
-            b1 = val(4)
-            a3 = val(5)
-            b3 = val(6)
-            write(*,*)'res=',a0*b0
-            write(*,*)'res=',a1/b1
-            write(*,*)'res=',a3**b3
-        end if
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+    else
+        a0 = val(1)
+        b0 = val(2)
+        a1 = val(3)
+        b1 = val(4)
+        a3 = val(5)
+        b3 = val(6)
+        call compare('a0*b0', a0*b0, res(1))
+        call compare('a1/b1', a1/b1, res(2))
+        call compare('a3**b3', a3**b3, res(3))
     end if
 
     end subroutine fptest2
@@ -140,24 +132,19 @@
     call parser%parse(func, var, .false.)  ! parse and bytecompile function string
     if (parser%error()) then
         call parser%print_errors(output_unit)
-    else
+        error stop
+    end if
 
-        write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res)  ! interprete bytecode representation of function
-        if (parser%error()) then
-            call parser%print_errors(output_unit)
-        else
-            do i=1,nfunc
-                write(*,*) func(i),'=',res(i)
-            end do
-            write(*,*)'==> direct evaluation:'
-            vel   = val(1)
-            alpha = val(2)
-            beta  = val(3)
-            write(*,*)'res=',vel*cos(beta)
-            write(*,*)'res=',vel*sin(beta)*cos(alpha)
-            write(*,*)'res=',vel*sin(beta)*sin(alpha)
-        end if
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+    else
+        vel   = val(1)
+        alpha = val(2)
+        beta  = val(3)
+        call compare('vel*cos(beta)',            vel*cos(beta), res(1)) 
+        call compare('vel*sin(beta)*cos(alpha)', vel*sin(beta)*cos(alpha), res(2)) 
+        call compare('vel*sin(beta)*sin(alpha)', vel*sin(beta)*sin(alpha), res(3)) 
     end if
 
     end subroutine fptest3
@@ -195,35 +182,33 @@
     call parser%parse(func, var, .false.)  ! parse and bytecompile function string
     if (parser%error()) then
         call parser%print_errors(output_unit)
-    else
-
-        vel   = val(1)
-        alpha = val(2)
-        beta  = val(3)
-        call cpu_time (rt1)
-        do n=1,neval
-            call parser%evaluate(val,res)  ! interprete bytecode representation of function
-            if (parser%error()) then
-                call parser%print_errors(output_unit)
-                return
-            end if
-        end do
-        write(*,*)'==> bytecode evaluation:'
-        write(*,*) 'res=',res
-        call cpu_time (rt2)
-        do n=1,neval
-            res(1) = vel*cos(beta)
-            res(2) = vel*sin(beta)*cos(alpha)
-            res(3) = vel*sin(beta)*sin(alpha)
-        end do
-        write(*,*)'==> direct evaluation:'
-        write(*,*) 'res=',res
-        call cpu_time (rt3)
-        write(*,*)'function evaluation:'
-        write(*,*)'- bytecode interpreter cpu time = ',rt2-rt1
-        write(*,*)'- machine code         cpu time = ',rt3-rt2,' = ',(rt3-rt2)/(rt2-rt1)*100.0_wp,'%'
-
+        error stop
     end if
+
+    vel   = val(1)
+    alpha = val(2)
+    beta  = val(3)
+    call cpu_time (rt1) ! ----- 
+    do n=1,neval
+        call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    end do
+    call cpu_time (rt2) ! ----- 
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
+    end if
+
+    call cpu_time (rt2) ! ----- 
+    do n=1,neval
+        res(1) = vel*cos(beta)
+        res(2) = vel*sin(beta)*cos(alpha)
+        res(3) = vel*sin(beta)*sin(alpha)
+    end do
+    call cpu_time (rt3) ! ----- 
+
+    write(*,*)'function evaluation:'
+    write(*,*)'  * bytecode interpreter cpu time = ',rt2-rt1
+    write(*,*)'  * machine code         cpu time = ',rt3-rt2,' = ',(rt3-rt2)/(rt2-rt1)*100.0_wp,'%'
 
     end subroutine fptest4
 !*******************************************************************************
@@ -253,14 +238,15 @@
     call parser%parse(func, var, .false.)  ! parse and bytecompile function string
     if (parser%error()) then
         call parser%print_errors(output_unit)
+        error stop
+    end if
+
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
     else
-        write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res)  ! interprete bytecode representation of function
-        if (parser%error()) then
-            call parser%print_errors(output_unit)
-        else
-            write(*,*) func,'=',res
-        end if
+        call compare('1.0e0 + 5.e1', real(1.0e0 + 5.e1, wp), res)
     end if
 
     end subroutine fptest5
@@ -271,11 +257,12 @@
 
     implicit none
 
-    integer, parameter :: nfunc = 4
-    character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x        ',  &
-                                                                '-x            ',  &
-                                                                'a*COS(b*x)+5  ',  &
-                                                                'a*COS(b*x)+5.0' ]
+    integer, parameter :: nfunc = 5
+    character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x                           ',  &
+                                                                '-sqrt(x)                         ',  &
+                                                                'a*COS(b*x)+5                     ',  &
+                                                                'a*COS(b*x)+5.0                   ', &
+                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)' ]
     integer, parameter :: nvar = 3
     character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
                                                                 'a', &
@@ -294,28 +281,47 @@
     call parser%parse(func, var, .false.)  ! parse and bytecompile function string
     if (parser%error()) then
         call parser%print_errors(output_unit)
-    else
+        error stop
+    end if
 
-        write(*,*)'==> bytecode evaluation:'
-        call parser%evaluate(val,res)  ! interprete bytecode representation of function
-        if (parser%error()) then
-            call parser%print_errors(output_unit)
-        else
-            do i=1,nfunc
-                write(*,*) func(i),'=',res(i)
-            end do
-            write(*,*)'==> direct evaluation:'
-            x  = val(1)
-            a  = val(2)
-            b  = val(3)
-            write(*,*)'-1.0*x        =',-1.0_wp*x
-            write(*,*)'-x            =',-x
-            write(*,*)'a*cos(b*x)+5  =',a*cos(b*x)+5
-            write(*,*)'a*cos(b*x)+5.0=',a*cos(b*x)+5.0_wp
-        end if
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
+    else
+        x  = val(1)
+        a  = val(2)
+        b  = val(3)
+        call compare(func(1), -1.0_wp*x, res(1))
+        call compare(func(2), -sqrt(x), res(2))
+        call compare(func(3), a*cos(b*x)+5, res(3))
+        call compare(func(4), a*cos(b*x)+5.0, res(4))
+        call compare(func(5), exp(x)-abs(x)+log(1.0)+log10(1.0), res(5))
     end if
 
     end subroutine fptest6
+!*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Compare the results from the parser to the actualy expression
+
+    subroutine compare(expression, truth, parser)
+
+    implicit none
+    
+    character(len=*),intent(in) :: expression 
+    real(wp),intent(in) :: truth 
+    real(wp),intent(in) :: parser
+
+    if (truth == parser) then
+        write(*,'(A30,A10,G0)') trim(expression), ' PASSED: ', truth 
+    else 
+        write(*,'(A30,A10,*(G0,1X))') trim(expression), ' FAILED: ', truth , parser
+        error stop 'error evaluating expression'
+    end if
+
+    end subroutine compare
 !*******************************************************************************
 
 !*******************************************************************************
