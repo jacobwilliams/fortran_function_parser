@@ -217,8 +217,6 @@
 !*******************************************************************************
 !>
 !  An example with no variables.
-!
-!@warning This one fails on gfortran with `-O2` optimization enabled.
 
     subroutine fptest5()
 
