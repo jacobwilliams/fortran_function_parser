@@ -1,6 +1,7 @@
 project: fortran_function_parser
 project_dir: ./src
 output_dir: ./doc
+media_dir: ./media
 project_github: https://github.com/jacobwilliams/fortran_function_parser
 summary: Modern Fortran Function Parser
 author: Jacob Williams
