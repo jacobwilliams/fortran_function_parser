@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content="Modern Fortran Function Parser">
+    <meta name="author" content="Jacob Williams" >
+    <link rel="icon" href="./favicon.png">
+
+    <title> fortran_function_parser </title>
+
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/pygments.css" rel="stylesheet">
+    <link href="./css/font-awesome.min.css" rel="stylesheet">
+    <link href="./css/local.css" rel="stylesheet">
+    <link  href="./tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="./js/jquery-2.1.3.min.js"></script>
+    <script src="./js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="./index.html">fortran_function_parser </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="./lists/files.html">Source Files</a></li>
+            <li><a href="./lists/modules.html">Modules</a></li>
+                   <li><a href="./lists/types.html">Derived Types</a></li>
+       
+            </ul>
+        
+            </li>
+<li class="visible-xs hidden-sm visible-lg"><a href="./lists/files.html">Source Files</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="./lists/modules.html">Modules</a></li>
+                             <li class="visible-xs hidden-sm visible-lg"><a href="./lists/types.html">Derived Types</a></li>
+          </ul>
+        <form action="./search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Main component for a primary marketing message or call to action -->
+      <div class="jumbotron">
+        <p>Modern Fortran Function Parser</p>
+	<p> Find us on&hellip;</p>
+        <p>
+          <a class="btn btn-lg btn-primary" href="https://github.com/jacobwilliams/fortran_function_parser" role="button">GitHub</a>
+        </p>
+      </div>
+
+      <div class="row" id='text'>
+        <div class="col-md-8">
+          <h1>fortran_function_parser</h1>
+          <h3>Status</h3>
+<p><a href="https://github.com/jacobwilliams/fortran_function_parser/releases/latest"><img alt="GitHub release" src="https://img.shields.io/github/release/jacobwilliams/fortran_function_parser.svg"></a>
+<a href="https://github.com/jacobwilliams/fortran_function_parser/actions"><img alt="Build Status" src="https://github.com/jacobwilliams/fortran_function_parser/actions/workflows/CI.yml/badge.svg"></a>
+<a href="https://codecov.io/gh/jacobwilliams/fortran_function_parser"><img alt="codecov" src="https://codecov.io/gh/jacobwilliams/fortran_function_parser/branch/master/graph/badge.svg"></a>
+<a href="https://github.com/jacobwilliams/fortran_function_parser/commits/master"><img alt="last-commit" src="https://img.shields.io/github/last-commit/jacobwilliams/fortran_function_parser"></a></p>
+<h3>Description</h3>
+<p>This function parser module is intended for applications where a set of
+mathematical fortran-style expressions is specified at runtime and is
+then evaluated for a large number of variable values. This is done by
+compiling the set of function strings into byte code, which is
+interpreted efficiently for the various variable values.</p>
+<h3>Building</h3>
+<p>The library can be built with the <a href="https://github.com/fortran-lang/fpm">Fortran Package Manager</a> using the provided <code>fpm.toml</code> file like so:</p>
+<div class="codehilite"><pre><span></span><code>fpm build --release
+</code></pre></div>
+
+<p>To use <code>fortran_function_parser</code> within your fpm project, add the following to your <code>fpm.toml</code> file:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">[dependencies]</span><span class="w"></span>
+<span class="na">fortran_function_parser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">{ git=&quot;https://github.com/jacobwilliams/fortran_function_parser.git&quot; }</span><span class="w"></span>
+</code></pre></div>
+
+<h3>Basic usage</h3>
+<h4>Module Import</h4>
+<p>In all program units where you want to use the function parser
+you must import the module by:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">use </span><span class="n">function_parser</span><span class="w"></span>
+</code></pre></div>
+
+<p>This command imports only 3 public types: <code>fparser</code>, <code>fparser_array</code>, and
+<code>list_of_errors</code>, which are explained in the following. The remainder of the
+module is hidden to the calling program.</p>
+<h4>Function parsing</h4>
+<p>A single function string <code>funcstr</code> can be parsed (checked and compiled) into
+bytecode by calling the <code>fparser</code> class method subroutine <code>parse</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">call </span><span class="n">me</span><span class="p">%</span><span class="n">parse</span><span class="p">(</span><span class="n">funcstr</span><span class="p">,</span><span class="w"> </span><span class="n">var</span><span class="p">,</span><span class="w"> </span><span class="n">case_sensitive</span><span class="p">)</span><span class="w"></span>
+</code></pre></div>
+
+<p>The variable names as they appear in the string <code>funcstr</code> have to be passed
+in the one-dimensional string array <code>var</code> (zero size of <code>var</code> is acceptable).
+The number of variables is implicitly passed by the dimension of this array.
+For some notes on the syntax of the function string see below.</p>
+<p>To parse an array of function strings, you can use the <code>fparser_array</code> class
+method <code>parse</code> in a similar manner.</p>
+<h4>Function evaluation</h4>
+<p>The function value is evaluated for a specific set of variable values
+by calling the <code>fparser</code> class method subroutine <code>evaluate</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">call </span><span class="n">me</span><span class="p">%</span><span class="n">evaluate</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="p">)</span><span class="w"></span>
+</code></pre></div>
+
+<p>The variable values are passed in the one-dimensional array <code>val</code> which must
+have the same dimension as array <code>var</code>.</p>
+<p>To evaluate an array of function strings, you can use the <code>fparser_array</code> class
+method <code>evaluate</code> in a similar manner.</p>
+<h4>Cleanup</h4>
+<p>To free the memory and destroy a variable of type <code>fparser</code> or <code>fparser_array</code>,
+use the <code>destroy</code> method:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">call </span><span class="n">me</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span><span class="w"></span>
+</code></pre></div>
+
+<h3>Error handling</h3>
+<p>Errors can be reported by both the <code>parse</code> and <code>evaluate</code>
+class methods. To check for errors, use the <code>error</code> method, and to print them use the <code>print_errors</code> method:</p>
+<div class="codehilite"><pre><span></span><code><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">error</span><span class="p">())</span><span class="w"> </span><span class="k">then</span>
+<span class="k">     </span><span class="n">me</span><span class="p">%</span><span class="n">print_errors</span><span class="p">(</span><span class="n">output_unit</span><span class="p">)</span><span class="w"></span>
+<span class="w"> </span><span class="k">end if</span><span class="w"></span>
+</code></pre></div>
+
+<p>An error in the function parsing step leads to a detailed error message
+(type and position of error). An error during function evaluation returns a function value of 0.0.</p>
+<h3>Function string syntax</h3>
+<p>Although they have to be passed as array elements of the same declared
+length (Fortran restriction), the variable names can be of arbitrary
+actual length for the parser. Parsing for variables is case sensitive.</p>
+<p>The syntax of the function string is similar to the Fortran convention.
+Mathematical Operators recognized are <code>+,</code> <code>-,</code> <code>*,</code> <code>/,</code> <code>**</code> or alternatively <code>^,</code>
+whereas symbols for brackets must be <code>()</code>.</p>
+<p>The function parser recognizes the (single argument) Fortran intrinsic
+functions <code>abs</code>, <code>exp</code>, <code>log10</code>, <code>log</code>, <code>sqrt</code>, <code>sinh</code>, <code>cosh</code>, <code>tanh</code>,
+<code>sin</code>, <code>cos</code>, <code>tan</code>, <code>asin</code>, <code>acos</code>, <code>atan</code>. Parsing for intrinsic
+functions is case INsensitive.</p>
+<p>Operations are evaluated in the correct order:</p>
+<ul>
+<li><code>()</code>    expressions in brackets first</li>
+<li><code>-A</code>    unary minus (or plus)</li>
+<li><code>A**B A^B</code>    exponentiation (<code>A</code> raised to the power <code>B</code>)</li>
+<li><code>A*B  A/B</code>    multiplication and division</li>
+<li><code>A+B  A-B</code>    addition and subtraction</li>
+</ul>
+<p>The function string can contain integer or real constants. To be recognized
+as explicit constants these must conform to the format</p>
+<p><code>[+|-][nnn][.nnn][e|E|d|D[+|-]nnn]</code></p>
+<p>where <code>nnn</code> means any number of digits. The mantissa must contain at least
+one digit before or following an optional decimal point. Valid exponent
+identifiers are 'e', 'E', 'd' or 'D'. If they appear they must be followed
+by a valid exponent.</p>
+<h3>Notes</h3>
+<ul>
+<li>The precision of real numbers can be adapted to the calling program by
+  adjusting the KIND parameter <code>wp</code> in the module.</li>
+</ul>
+<h3>Credits</h3>
+<ul>
+<li>This code is based on Fortran 95 function parser v1.1 by Roland Schmehl
+  <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#111;&#108;&#97;&#110;&#100;&#46;&#115;&#99;&#104;&#109;&#101;&#104;&#108;&#64;&#97;&#108;&#117;&#109;&#110;&#105;&#46;&#117;&#110;&#105;&#45;&#107;&#97;&#114;&#108;&#115;&#114;&#117;&#104;&#101;&#46;&#100;&#101;">&#114;&#111;&#108;&#97;&#110;&#100;&#46;&#115;&#99;&#104;&#109;&#101;&#104;&#108;&#64;&#97;&#108;&#117;&#109;&#110;&#105;&#46;&#117;&#110;&#105;&#45;&#107;&#97;&#114;&#108;&#115;&#114;&#117;&#104;&#101;&#46;&#100;&#101;</a>. The source code is available
+  from <a href="http://fparser.sourceforge.net">here</a>.</li>
+<li>The function parser concept is based on a C++ class library written by
+  Juha Nieminen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#119;&#97;&#114;&#112;&#64;&#105;&#107;&#105;&#46;&#102;&#105;">&#119;&#97;&#114;&#112;&#64;&#105;&#107;&#105;&#46;&#102;&#105;</a> available from <a href="http://warp.povusers.org/FunctionParser/">here</a>.</li>
+<li>The original code has been updated to Fortran 2008 by Jacob Williams. Development
+  continues on <a href="https://github.com/jacobwilliams/fortran_function_parser">GitHub</a>.</li>
+<li>Note that another refactoring of the original code is available <a href="https://github.com/jacopo-chevallard/FortranParser">here</a>.</li>
+</ul>
+        </div>
+        <div class="col-md-4">
+	  <div class="well">
+          <h2>Developer Info</h2>
+          <h4>Jacob Williams</h4>
+          
+            <div class="text-center"><div class="btn-group" role="group">
+              <a class="btn btn-lg btn-primary" href="https://github.com/jacobwilliams"><i class="fa fa-github fa-lg"></i></a>
+            </div></div>
+       </div>
+       </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-6 col-sm-4">
+              <h3>Source Files</h3>
+              <ul>                    <li><a href='./sourcefile/error_module.f90.html'>error_module.f90</a></li>
+                    <li><a href='./sourcefile/function_parser.f90.html'>function_parser.f90</a></li>
+</ul>
+          </div>
+		  <div class="col-xs-6 col-sm-4">
+              <h3>Modules</h3>
+              <ul>                    <li><a href='./module/error_module.html'>error_module</a></li>
+                    <li><a href='./module/function_parser.html'>function_parser</a></li>
+</ul>
+          </div>
+		  <div class="col-xs-6 col-sm-4">
+              <h3>Derived Types</h3>
+              <ul>                    <li><a href='./type/fparser.html'>fparser</a></li>
+                    <li><a href='./type/fparser_array.html'>fparser_array</a></li>
+                    <li><a href='./type/list_of_errors.html'>list_of_errors</a></li>
+</ul>
+          </div>
+      </div>
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-6"><p>fortran_function_parser was developed by Jacob Williams<br>&copy; 2022 
+</p>
+        </div>
+        <div class="col-xs-6 col-md-6">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+          </p>
+        </div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="./js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="./js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script src="./tipuesearch/tipuesearch_content.js"></script>
+    <script src="./tipuesearch/tipuesearch_set.js"></script>
+    <script src="./tipuesearch/tipuesearch.js"></script>
+    
+  </body>
+</html>
