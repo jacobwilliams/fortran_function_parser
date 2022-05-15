@@ -258,7 +258,7 @@
 
     implicit none
 
-    integer, parameter :: nfunc = 12
+    integer, parameter :: nfunc = 14
     character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x                           ',  &
                                                                 '-sqrt(x)                         ',  &
                                                                 'a*COS(b*x)+5                     ',  &
@@ -270,7 +270,9 @@
                                                                 'tan(x)                           ', &
                                                                 'asin(y)                          ', &
                                                                 'acos(y)                          ', &
-                                                                'atan(y)                          '  ]
+                                                                'atan(y)                          ', &
+                                                                '-x**2                            ', & 
+                                                                '-x^2                             ' ]
     integer, parameter :: nvar = 4
     character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
                                                                 'a', &
@@ -314,6 +316,8 @@
         call compare(func(10), asin(y), res(10))
         call compare(func(11), acos(y), res(11))
         call compare(func(12), atan(y), res(12))
+        call compare(func(13), -x**2,   res(13))
+        call compare(func(13), -x**2,   res(14))
     end if
 
     end subroutine fptest6
