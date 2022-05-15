@@ -28,6 +28,9 @@ To use `fortran_function_parser` within your fpm project, add the following to y
 fortran_function_parser = { git="https://github.com/jacobwilliams/fortran_function_parser.git" }
 ```
 
+### Documentation
+
+The latest API documentation can be found [here](https://jacobwilliams.github.io/fortran_function_parser/). This was generated from the source code using [FORD](https://github.com/Fortran-FOSS-Programmers/ford).
 
 ### Basic usage
 
