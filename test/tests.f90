@@ -258,22 +258,30 @@
 
     implicit none
 
-    integer, parameter :: nfunc = 5
+    integer, parameter :: nfunc = 12
     character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x                           ',  &
                                                                 '-sqrt(x)                         ',  &
                                                                 'a*COS(b*x)+5                     ',  &
                                                                 'a*COS(b*x)+5.0                   ', &
-                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)' ]
-    integer, parameter :: nvar = 3
+                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)',&
+                                                                'sinh(x)                          ', &
+                                                                'cosh(x)                          ', &
+                                                                'tanh(x)                          ', &
+                                                                'tan(x)                           ', &
+                                                                'asin(y)                          ', &
+                                                                'acos(y)                          ', &
+                                                                'atan(y)                          '  ]
+    integer, parameter :: nvar = 4
     character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
                                                                 'a', &
-                                                                'b'  ]
-    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, 3.0_wp, 4.0_wp ]
+                                                                'b', &
+                                                                'y'  ]
+    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, 3.0_wp, 4.0_wp, 0.1_wp ]
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
     integer :: i  !! counter
-    real(wp) :: x,a,b
+    real(wp) :: x,a,b,y
 
     write(*,*) ''
     write(*,*) ' Test 6'
@@ -293,11 +301,19 @@
         x  = val(1)
         a  = val(2)
         b  = val(3)
-        call compare(func(1), -1.0_wp*x, res(1))
-        call compare(func(2), -sqrt(x), res(2))
-        call compare(func(3), a*cos(b*x)+5, res(3))
-        call compare(func(4), a*cos(b*x)+5.0, res(4))
-        call compare(func(5), exp(x)-abs(x)+log(1.0)+log10(1.0), res(5))
+        y  = val(4)
+        call compare(func(1),  -1.0_wp*x, res(1))
+        call compare(func(2),  -sqrt(x), res(2))
+        call compare(func(3),  a*cos(b*x)+5, res(3))
+        call compare(func(4),  a*cos(b*x)+5.0, res(4))
+        call compare(func(5),  exp(x)-abs(x)+log(1.0)+log10(1.0), res(5))
+        call compare(func(6),  sinh(x), res(6))
+        call compare(func(7),  cosh(x), res(7))
+        call compare(func(8),  tanh(x), res(8))
+        call compare(func(9),  tan(x),  res(9))
+        call compare(func(10), asin(y), res(10))
+        call compare(func(11), acos(y), res(11))
+        call compare(func(12), atan(y), res(12))
     end if
 
     end subroutine fptest6
