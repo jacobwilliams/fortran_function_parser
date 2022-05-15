@@ -1,3 +1,10 @@
+### Status
+
+[![GitHub release](https://img.shields.io/github/release/jacobwilliams/fortran_function_parser.svg)](https://github.com/jacobwilliams/fortran_function_parser/releases/latest)
+[![Build Status](https://github.com/jacobwilliams/fortran_function_parser/actions/workflows/CI.yml/badge.svg)](https://github.com/jacobwilliams/fortran_function_parser/actions)
+[![codecov](https://codecov.io/gh/jacobwilliams/fortran_function_parser/branch/master/graph/badge.svg)](https://codecov.io/gh/jacobwilliams/fortran_function_parser)
+[![last-commit](https://img.shields.io/github/last-commit/jacobwilliams/fortran_function_parser)](https://github.com/jacobwilliams/fortran_function_parser/commits/master)
+
 ### Description
 
 This function parser module is intended for applications where a set of
@@ -5,6 +12,22 @@ mathematical fortran-style expressions is specified at runtime and is
 then evaluated for a large number of variable values. This is done by
 compiling the set of function strings into byte code, which is
 interpreted efficiently for the various variable values.
+
+### Building
+
+The library can be built with the [Fortran Package Manager](https://github.com/fortran-lang/fpm) using the provided `fpm.toml` file like so:
+
+```bash
+fpm build --release
+```
+
+To use `fortran_function_parser` within your fpm project, add the following to your `fpm.toml` file:
+
+```yml
+[dependencies]
+fortran_function_parser = { git="https://github.com/jacobwilliams/fortran_function_parser.git" }
+```
+
 
 ### Basic usage
 

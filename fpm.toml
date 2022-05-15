@@ -1,0 +1,19 @@
+name = "fortran_function_parser"
+license = "BSD-3-Clause"
+author = "Jacob Williams"
+maintainer = "https://github.com/jacobwilliams"
+copyright = "Copyright (c) 2017-2022, Jacob Williams"
+description = "Modern Fortran Function Parser"
+homepage = "https://github.com/jacobwilliams/fortran_function_parser"
+keywords = ["parser"]
+
+[library]
+source-dir = "src"
+
+[install]
+library = true
+
+[build]
+auto-executables = false
+auto-examples = false
+auto-tests = true
