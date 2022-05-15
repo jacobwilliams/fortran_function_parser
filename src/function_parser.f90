@@ -1405,6 +1405,8 @@
     integer :: n  !! byte value of math item
 
     n = 0
+    if (len(f)==0) return ! error condition 
+
     if (scan(f(1:1),'0123456789.') > 0) then ! check for begin of a number
         me%immedsize = me%immedsize + 1
         if (allocated(me%immed)) then
