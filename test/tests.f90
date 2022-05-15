@@ -343,13 +343,14 @@
     call parse_error(parser,'x * (123',var,val)
     call parse_error(parser,'x +-* y',var,val)
     call parse_error(parser,'x + sin',var,val)
-    call parse_error(parser,'x + ()',var,val)
+    call parse_error(parser,'-(1) + (+x) + ()',var,val)
     call parse_error(parser,'x +',var,val)
 
     call eval_error(parser,'sqrt(-x)',var,val)
     call eval_error(parser,'acos(10.0)',var,val)
     call eval_error(parser,'asin(10.0)',var,val)
     call eval_error(parser,'log(-x)',var,val)
+    call eval_error(parser,'log10(-x)',var,val)
     call eval_error(parser,'1/0',var,val)
 
     end subroutine error_tests
@@ -361,7 +362,7 @@
         real(wp),dimension(1) :: res
         character(len=*),dimension(:),intent(in) :: var
         real(wp),dimension(:),intent(in) :: val
-        call parser%parse([str], var, .false.)  ! parse and bytecompile function string
+        call parser%parse([str], var)  ! parse and bytecompile function string
         if (parser%error()) then
             call parser%print_errors(output_unit)
             write(*,*) 'PASSED : parsing error'
@@ -378,7 +379,7 @@
         real(wp),dimension(1) :: res
         character(len=*),dimension(:),intent(in) :: var
         real(wp),dimension(:),intent(in) :: val
-        call parser%parse([str], var, .false.)  ! parse and bytecompile function string
+        call parser%parse([str], var, .True.)  ! parse and bytecompile function string [case sensitive]
         if (parser%error()) then
             call parser%print_errors(output_unit)
             error stop
