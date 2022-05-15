@@ -753,7 +753,7 @@
     real(wp),dimension(:),intent(in) :: val   !! variable values
     integer,intent(out)              :: ierr  !! error flag
 
-    if (me%stack(sp)<=zero) then
+    if (me%stack(sp)<zero) then
         ierr = error_sqrt_arg_neg
     else
         me%stack(sp) = sqrt(me%stack(sp))
