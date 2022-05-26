@@ -16,6 +16,7 @@
     call fptest4()
     call fptest5()
     call fptest6()
+    call fptest7()
     call error_tests()
 
     contains
@@ -315,11 +316,96 @@
         call compare(func(11), acos(y), res(11))
         call compare(func(12), atan(y), res(12))
         call compare(func(13), -x**2,   res(13))
-        call compare(func(13), -x**2,   res(14))
+        call compare(func(14), -x**2,   res(14))
     end if
 
     end subroutine fptest6
 !*******************************************************************************
+
+!*******************************************************************************
+!>
+!  Functions of multiple arguments.
+
+    subroutine fptest7()
+
+    implicit none
+
+    integer, parameter :: nfunc = 18
+    character (len=*), dimension(nfunc), parameter :: func = [  ' atan(2.0)                                             ',  &
+                                                                ' atan(2.0, 1.7)                                        ',  &
+                                                                ' atan(x)                                               ',  &
+                                                                ' atan(x, x)                                            ',  &
+                                                                ' atan(x, 3.5)                                          ',  &
+                                                                ' atan(x, cos(4.5 + atan(3.0 + atan(7.0, x))))*atan(4.6)',  &
+                                                                ' atan(y, x)                                            ',  &
+                                                                ' atan(y, x*z)                                          ',  &
+                                                                ' atan(abs(y)*atan(x + y, z))                           ',  &
+                                                                '-atan(y - z, x + 3.0)                                  ',  &
+                                                                '-atan(x*y*z)*atan(y, x*y*z)                            ',  &
+                                                                '-atan(y)                                               ',  &
+                                                                ' atan2(4.5, y)                                         ',  &
+                                                                ' -atan2(x, z)                                          ',  &
+                                                                ' 5+cos(test0())                                        ',  &
+                                                                '-test0()                                               ',  &
+                                                                ' test3(x,y,z) - x - y - z + 1                          ',  & 
+                                                                '-test3(test0(), y, z)                                  '   ]
+    integer, parameter :: nvar = 3
+    character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
+                                                                'y', &
+                                                                'z'  ]
+
+    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, -3.0_wp, 4.7_wp ]
+
+    type(fparser_array) :: parser
+    real(wp),dimension(nfunc) :: res
+    integer :: i  !! counter
+    real(wp) :: x,y,z
+
+    write(*,*) ''
+    write(*,*) ' Test 7'
+    write(*,*) ''
+
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
+    end if
+
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
+    end if
+
+    x  = val(1)
+    y  = val(2)
+    z  = val(3)
+
+    ! Use atan2(x,y) instead of atan(x,y); some Intel ifort compiler versions
+    ! that technically support atan(x,y) have bugs that can occasionally cause
+    ! internal compiler error segfaults.
+    call compare(func(1),   atan(2.0_wp),                                                         res(1) )
+    call compare(func(2),   atan2(2.0_wp, 1.7_wp),                                                res(2) )
+    call compare(func(3),   atan(x),                                                              res(3) )
+    call compare(func(4),   atan2(x, x),                                                          res(4) )
+    call compare(func(5),   atan2(x, 3.5_wp),                                                     res(5) )
+    call compare(func(6),   atan2(x, cos(4.5_wp + atan(3.0_wp + atan2(7.0_wp, x))))*atan(4.6_wp), res(6) )
+    call compare(func(7),   atan2(y, x),                                                          res(7) )
+    call compare(func(8),   atan2(y, x*z) ,                                                       res(8) )
+    call compare(func(9),   atan(abs(y)*atan2(x + y, z)),                                         res(9) )
+    call compare(func(10), -atan2(y - z, x + 3.0_wp),                                             res(10))
+    call compare(func(11), -atan(x*y*z)*atan2(y, x*y*z),                                          res(11))
+    call compare(func(12), -atan(y),                                                              res(12))
+    call compare(func(13),  atan2(4.5_wp, y) ,                                                    res(13))
+    call compare(func(14), -atan2(x,z),                                                           res(14))
+    call compare(func(15),  5.0_wp + cos(15.0_wp),                                                res(15))
+    call compare(func(16), -15.0_wp,                                                              res(16))
+    call compare(func(17),  x + y + z - x - y - z + 1.0_wp,                                       res(17))
+    call compare(func(18), -(15.0_wp + y + z),                                                    res(18))
+
+    end subroutine fptest7
+!*******************************************************************************
+
 
 !*******************************************************************************
 !>
@@ -347,6 +433,13 @@
     call parse_error(parser,'x + sin',var,val)
     call parse_error(parser,'-(1) + (+x) + ()',var,val)
     call parse_error(parser,'x +',var,val)
+    call parse_error(parser,'cos()',var,val)
+    call parse_error(parser,'log(a, b)',var,val)
+    call parse_error(parser,'atan2(x)',var,val)
+    call parse_error(parser,'atan(, 3)',var,val)
+    call parse_error(parser,'abs(x, a, b, 3)',var,val)
+    call parse_error(parser,'(((x))',var,val)
+    call parse_error(parser,')*sin(b)',var,val)
 
     call eval_error(parser,'sqrt(-x)',var,val)
     call eval_error(parser,'acos(10.0)',var,val)
@@ -399,7 +492,7 @@
 
 !*******************************************************************************
 !>
-!  Compare the results from the parser to the actualy expression
+!  Compare the results from the parser with the actual expression
 
     subroutine compare(expression, truth, parser)
 
@@ -409,10 +502,15 @@
     real(wp),intent(in) :: truth 
     real(wp),intent(in) :: parser
 
+    character(len=:), allocatable :: disp_expr
+
+    disp_expr = trim(expression)
+    if (len(disp_expr) > 30) disp_expr = disp_expr(1:26) // ' ...'
+    
     if (truth == parser) then
-        write(*,'(A30,A10,G0)') trim(expression), ' PASSED: ', truth 
+        write(*,'(A30,A10,G0)') disp_expr, ' PASSED: ', truth 
     else 
-        write(*,'(A30,A10,*(G0,1X))') trim(expression), ' FAILED: ', truth , parser
+        write(*,'(A30,A10,*(G0,1X))') disp_expr, ' FAILED: ', truth , parser
         error stop 'error evaluating expression'
     end if
 
