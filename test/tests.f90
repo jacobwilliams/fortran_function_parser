@@ -507,7 +507,8 @@
     disp_expr = trim(expression)
     if (len(disp_expr) > 30) disp_expr = disp_expr(1:26) // ' ...'
     
-    if (truth == parser) then
+    !if (truth == parser) then
+    if (abs(truth-parser) <= epsilon(1.0_wp)) then
         write(*,'(A30,A10,G0)') disp_expr, ' PASSED: ', truth 
     else 
         write(*,'(A30,A10,*(G0,1X))') disp_expr, ' FAILED: ', truth , parser
