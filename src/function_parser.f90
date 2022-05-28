@@ -1471,7 +1471,7 @@
 
     call me%error_msg%add(' '//trim(funcstr))
 
-    tmp = repeat(' ',ipos(j))//'?'     ! Advance to the jth position
+    tmp = repeat(' ',ipos(min(j,size(ipos))))//'?'     ! Advance to the jth position
     call me%error_msg%add(tmp)
     deallocate(tmp)
 
