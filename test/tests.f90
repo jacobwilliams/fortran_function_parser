@@ -18,6 +18,7 @@
     call fptest6()
     call fptest7()
     call error_tests()
+    call fptest8()
 
     contains
 !*******************************************************************************
@@ -144,9 +145,9 @@
         vel   = val(1)
         alpha = val(2)
         beta  = val(3)
-        call compare('vel*cos(beta)',            vel*cos(beta), res(1)) 
-        call compare('vel*sin(beta)*cos(alpha)', vel*sin(beta)*cos(alpha), res(2)) 
-        call compare('vel*sin(beta)*sin(alpha)', vel*sin(beta)*sin(alpha), res(3)) 
+        call compare('vel*cos(beta)',            vel*cos(beta), res(1))
+        call compare('vel*sin(beta)*cos(alpha)', vel*sin(beta)*cos(alpha), res(2))
+        call compare('vel*sin(beta)*sin(alpha)', vel*sin(beta)*sin(alpha), res(3))
     end if
 
     end subroutine fptest3
@@ -190,23 +191,23 @@
     vel   = val(1)
     alpha = val(2)
     beta  = val(3)
-    call cpu_time (rt1) ! ----- 
+    call cpu_time (rt1) ! -----
     do n=1,neval
         call parser%evaluate(val,res)  ! interprete bytecode representation of function
     end do
-    call cpu_time (rt2) ! ----- 
+    call cpu_time (rt2) ! -----
     if (parser%error()) then
         call parser%print_errors(output_unit)
         error stop
     end if
 
-    call cpu_time (rt2) ! ----- 
+    call cpu_time (rt2) ! -----
     do n=1,neval
         res(1) = vel*cos(beta)
         res(2) = vel*sin(beta)*cos(alpha)
         res(3) = vel*sin(beta)*sin(alpha)
     end do
-    call cpu_time (rt3) ! ----- 
+    call cpu_time (rt3) ! -----
 
     write(*,*)'function evaluation:'
     write(*,*)'  * bytecode interpreter cpu time = ',rt2-rt1
@@ -270,7 +271,7 @@
                                                                 'asin(y)                          ', &
                                                                 'acos(y)                          ', &
                                                                 'atan(y)                          ', &
-                                                                '-x**2                            ', & 
+                                                                '-x**2                            ', &
                                                                 '-x^2                             ' ]
     integer, parameter :: nvar = 4
     character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
@@ -345,10 +346,10 @@
                                                                 '-atan(y)                                               ',  &
                                                                 ' atan2(4.5, y)                                         ',  &
                                                                 ' -atan2(x, z)                                          ',  &
-                                                                ' 5+cos(test0())                                        ',  &
-                                                                '-test0()                                               ',  &
-                                                                ' test3(x,y,z) - x - y - z + 1                          ',  & 
-                                                                '-test3(test0(), y, z)                                  '   ]
+                                                                ' 5+cos(pi())                                           ',  &
+                                                                '-pi()                                                  ',  &
+                                                                ' if(x,y,z) - x - y - z + 1                             ',  &
+                                                                '-if(pi()*0, y, z)                                      '   ]
     integer, parameter :: nvar = 3
     character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
                                                                 'y', &
@@ -398,14 +399,71 @@
     call compare(func(12), -atan(y),                                                              res(12))
     call compare(func(13),  atan2(4.5_wp, y) ,                                                    res(13))
     call compare(func(14), -atan2(x,z),                                                           res(14))
-    call compare(func(15),  5.0_wp + cos(15.0_wp),                                                res(15))
-    call compare(func(16), -15.0_wp,                                                              res(16))
-    call compare(func(17),  x + y + z - x - y - z + 1.0_wp,                                       res(17))
-    call compare(func(18), -(15.0_wp + y + z),                                                    res(18))
+    call compare(func(15),  5.0_wp + cos(acos(-1.0_wp)),                                          res(15))
+    call compare(func(16), -acos(-1.0_wp),                                                        res(16))
+    call compare(func(17),  y - x - y - z + 1,                                                    res(17))
+    call compare(func(18),  -z,                                                                   res(18))
 
     end subroutine fptest7
 !*******************************************************************************
 
+
+!*******************************************************************************
+!>
+!  Testing order of operations
+
+    subroutine fptest8()
+
+    implicit none
+
+    integer, parameter :: nfunc = 6
+    character (len=*), dimension(nfunc), parameter :: func = [  'x+y*x/x            ',  &
+                                                                'x+y/x*x            ',  &
+                                                                '(x*y/x)**2+1       ',  &
+                                                                '(x*y/x)**2*2**2+55 ',  &
+                                                                '1/2+4*1+4*6/2/3*5/6',  &
+                                                                '1/2+4*1-4*6*2*3/5*6'  ]
+    integer, parameter :: nvar = 3
+    character (len=*), dimension(nvar),  parameter :: var  = [  'x  ', &
+                                                                'y  ', &
+                                                                'z  '  ]
+
+    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, -3.0_wp, 4.7_wp ]
+
+    type(fparser_array) :: parser
+    real(wp),dimension(nfunc) :: res
+    integer :: i  !! counter
+    real(wp) :: x,y,z,s
+
+    write(*,*) ''
+    write(*,*) ' Test 8'
+    write(*,*) ''
+
+    call parser%parse(func, var, .false.)  ! parse and bytecompile function string
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
+    end if
+
+    call parser%evaluate(val,res)  ! interprete bytecode representation of function
+    if (parser%error()) then
+        call parser%print_errors(output_unit)
+        error stop
+    end if
+
+    x  = val(1)
+    y  = val(2)
+    z  = val(3)
+
+    call compare(func(1), x+y*x/x ,                        res(1) )
+    call compare(func(2), x+y/x*x ,                        res(2) )
+    call compare(func(3), (x*y/x)**2+1.0_wp ,              res(3) )
+    call compare(func(4), (x*y/x)**2*2.0_wp**2+55.0_wp ,   res(4) )
+    call compare(func(5), 1.0_wp/2.0_wp+4.0_wp*1.0_wp+4*6.0_wp/2.0_wp/3.0_wp*5.0_wp/6.0_wp ,      res(5) )
+    call compare(func(6), 1.0_wp/2.0_wp+4.0_wp*1.0_wp-4.0_wp*6.0_wp*2.0_wp*3.0_wp/5.0_wp*6.0_wp , res(6) )
+
+    end subroutine fptest8
+!*******************************************************************************
 
 !*******************************************************************************
 !>
@@ -440,6 +498,7 @@
     call parse_error(parser,'abs(x, a, b, 3)',var,val)
     call parse_error(parser,'(((x))',var,val)
     call parse_error(parser,')*sin(b)',var,val)
+    call parse_error(parser,'sin',var,val)
 
     call eval_error(parser,'sqrt(-x)',var,val)
     call eval_error(parser,'acos(10.0)',var,val)
@@ -461,7 +520,7 @@
         if (parser%error()) then
             call parser%print_errors(output_unit)
             write(*,*) 'PASSED : parsing error'
-        else 
+        else
             error stop 'FAILED : there should have been a parsing error'
         end if
         call parser%clear_errors()
@@ -485,7 +544,7 @@
             write(*,*) 'PASSED : evaluation errors detected'
         else
             error stop 'FAILED : there should have been evaluation errors'
-        end if        
+        end if
         call parser%clear_errors()
         call parser%destroy()
     end subroutine eval_error
@@ -497,21 +556,21 @@
     subroutine compare(expression, truth, parser)
 
     implicit none
-    
-    character(len=*),intent(in) :: expression 
-    real(wp),intent(in) :: truth 
+
+    character(len=*),intent(in) :: expression
+    real(wp),intent(in) :: truth
     real(wp),intent(in) :: parser
 
     character(len=:), allocatable :: disp_expr
 
     disp_expr = trim(expression)
     if (len(disp_expr) > 30) disp_expr = disp_expr(1:26) // ' ...'
-    
-    !if (truth == parser) then
-    if (abs(truth-parser) <= epsilon(1.0_wp)) then
-        write(*,'(A30,A10,G0)') disp_expr, ' PASSED: ', truth 
-    else 
-        write(*,'(A30,A10,*(G0,1X))') disp_expr, ' FAILED: ', truth , parser
+
+   ! if (truth == parser) then
+    if (abs(truth-parser) <= 1000*epsilon(1.0_wp)) then
+        write(*,'(1p,A30,A10,*(G0,1X))') disp_expr, ' PASSED: ', truth
+    else
+        write(*,'(1p,A30,A10,*(G0,1X))') disp_expr, ' FAILED: ', truth , parser, parser-truth
         error stop 'error evaluating expression'
     end if
 

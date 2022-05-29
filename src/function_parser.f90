@@ -35,6 +35,7 @@
     !parameters:
     real(wp), parameter :: zero = 0.0_wp
     real(wp), parameter :: one  = 1.0_wp
+    real(wp), parameter :: pi = acos(-one)
 
     ! Note: these should be continuous, unique integers:
     ! [they must have the values that correspond to the array indices below]
@@ -60,8 +61,8 @@
                             cAcos    = 20, &
                             cAtan2   = 21, &    ! atan2 must precede atan to prevent aliasing.
                             cAtan    = 22, &
-                            cTest0   = 23, &    ! Test function with 0 arguments (returns 15.0).
-                            cTest3   = 24       ! Test function with 3 arguments (returns sum of arguments).
+                            cPi      = 23, &    ! Pi (function with zero arguments)
+                            cIf      = 24       ! Test function with 3 arguments (returns sum of arguments).
     integer, parameter ::   VarBegin = 25
 
     character(len=1), dimension(cAdd:cPow), parameter ::  operators = [ '+', &  ! plus
@@ -70,7 +71,7 @@
                                                                         '/', &  ! divide
                                                                         '^'  ]  ! power
 
-    character(len=5), dimension(cAbs:cTest3), parameter :: functions = [ 'abs  ', &
+    character(len=5), dimension(cAbs:cIf), parameter :: functions = [    'abs  ', &
                                                                          'exp  ', &
                                                                          'log10', &
                                                                          'log  ', &
@@ -85,11 +86,11 @@
                                                                          'acos ', &
                                                                          'atan2', &
                                                                          'atan ', &
-                                                                         'test0', &
-                                                                         'test3' ]
+                                                                         'pi   ', &
+                                                                         'if   ' ]
 
     ! Specify the number of required arguments each `functions` element must have.
-    integer, dimension(cAbs:cTest3), parameter :: required_args = [ 1, & ! abs
+    integer, dimension(cAbs:cIf), parameter :: required_args = [ 1, & ! abs
                                                                     1, & ! exp
                                                                     1, & ! log10
                                                                     1, & ! log
@@ -104,11 +105,11 @@
                                                                     1, & ! acos
                                                                     2, & ! atan2
                                                                     1, & ! atan
-                                                                    0, & ! test0
-                                                                    3  ] ! test3
+                                                                    0, & ! pi
+                                                                    3  ] ! if
 
     ! Specify the number of optional arguments each `functions` element might have.
-    integer, dimension(cAbs:cTest3), parameter :: optional_args = [ 0, & ! abs
+    integer, dimension(cAbs:cIf), parameter :: optional_args = [ 0, & ! abs
                                                                     0, & ! exp
                                                                     0, & ! log10
                                                                     0, & ! log
@@ -123,8 +124,8 @@
                                                                     0, & ! acos
                                                                     0, & ! atan2
                                                                     1, & ! atan
-                                                                    0, & ! test0
-                                                                    0  ] ! test3
+                                                                    0, & ! pi
+                                                                    0  ] ! if
 
     ! The maximum number of arguments any `functions` element might have.
     integer, parameter :: max_func_args = maxval(required_args + optional_args)
@@ -1042,9 +1043,9 @@
 
 !******************************************************************
 !>
-!  Test function with zero arguments.
+!  Pi. A function with zero arguments.
 
-    subroutine ctest0_func(me,ip,dp,sp,val,ierr)
+    subroutine cPi_func(me,ip,dp,sp,val,ierr)
 
     implicit none
 
@@ -1056,17 +1057,21 @@
     integer,intent(out)              :: ierr  !! error flag
 
     sp = sp + 1
-    me%stack(sp) = 15.0_wp
+    me%stack(sp) = pi
     ierr = 0
 
-    end subroutine ctest0_func
+    end subroutine cPi_func
 !******************************************************************
 
 !******************************************************************
 !>
-!  Test function with three arguments.
+!  If function with three arguments.
+!
+!  `If(expression, value is true, value if false)`
+!
+!  Where: 0 is false and /=0 is true.
 
-    subroutine ctest3_func(me,ip,dp,sp,val,ierr)
+    subroutine cif_func(me,ip,dp,sp,val,ierr)
 
     implicit none
 
@@ -1077,11 +1082,16 @@
     real(wp),dimension(:),intent(in) :: val   !! variable values
     integer,intent(out)              :: ierr  !! error flag
 
-    me%stack(sp-2) = me%stack(sp-2) + me%stack(sp-1) + me%stack(sp)
+    if (me%stack(sp-2) /= zero) then ! true
+        me%stack(sp-2) = me%stack(sp-1)
+    else ! false
+        me%stack(sp-2) = me%stack(sp)
+    end if
+
     sp = sp - 2
     ierr = 0
 
-    end subroutine ctest3_func
+    end subroutine cif_func
 !******************************************************************
 
 !******************************************************************
@@ -1136,9 +1146,9 @@
     integer          :: cur_pos,         &      !! The current position in `func` being processed.
                         func_len,        &      !! The length of `func`.
                         open_parens,     &      !! The number of open parentheses.
-                        arg_len,         &      !! The length of an argument.      
+                        arg_len,         &      !! The length of an argument.
                         iarg                    !! Argument index.
-    
+
     ! Initialize outputs.
     num_args = 1
     arg_pos = 0
@@ -1147,14 +1157,14 @@
 
     func_len = len_trim(func)
     open_parens = 1
-   
+
     cur_pos = paren_start + 1
     func_len = len_trim(func)
 
     ! Step through the function string until we find the function's closing parenthesis.
     ! Every time we find a comma character at the same parentheses level as the function's
-    ! opening parenthesis, increment the number of arguments and record the previous 
-    ! argument's last character. 
+    ! opening parenthesis, increment the number of arguments and record the previous
+    ! argument's last character.
     do while (open_parens > 0)
         if (cur_pos > func_len) then
             ! The function did not have a closing parenthesis.
@@ -1176,7 +1186,7 @@
             end if
 
             open_parens = open_parens - 1
-            
+
             ! We have arrived at the function's closing parenthesis.
             if (open_parens == 0) arg_pos(num_args) = cur_pos - 1
 
@@ -1203,9 +1213,9 @@
     do iarg = 1, num_args
         if (iarg == 1) then
             arg_len = arg_pos(iarg) - paren_start
-        else 
+        else
             arg_len = arg_pos(iarg) - arg_pos(iarg - 1) - 1
-        endif       
+        endif
 
         if (arg_len == 0) then
             if (present(ierr)) ierr = empty_arg
@@ -1215,7 +1225,7 @@
     end do
 
     end subroutine find_arg_positions
-
+!*******************************************************************************
 
 !*******************************************************************************
 !>
@@ -1254,7 +1264,7 @@
          if (c == '(') then
             parcnt = parcnt + 1
          elseif (c == ')') then
-            parcnt = parcnt - 1            
+            parcnt = parcnt - 1
          end if
 
         if (parcnt < 0) then
@@ -1306,13 +1316,13 @@
                 call me%add_error(j, ipos, funcstr, 'Missing opening parenthesis')
                 return
             end if
-            
+
             ! Find the number of function arguments and argument substring positions
             ! in `func`.
             call find_arg_positions(j, func, num_args, arg_pos, ierr, err_pos)
             if (ierr /= 0) then
                 select case (ierr)
-                    case     (1); call me%add_error(err_pos, ipos, funcstr, 'Missing function closing parenthesis')       
+                    case     (1); call me%add_error(err_pos, ipos, funcstr, 'Missing function closing parenthesis')
                     case     (2); call me%add_error(err_pos, ipos, funcstr, 'Function has too many arguments')
                     case     (3); call me%add_error(err_pos, ipos, funcstr, 'Function has an empty argument')
                     case default; call me%add_error(err_pos, ipos, funcstr, 'Unknown find argument position error')
@@ -1320,11 +1330,11 @@
                 return
             end if
 
-            ! Verify that the number of function arguments present is consistent 
+            ! Verify that the number of function arguments present is consistent
             ! with the specified function.
             if (num_args < required_args(n)) then
                 call me%add_error(j, ipos, funcstr, 'Missing required function argument')
-                return                
+                return
             elseif (num_args > required_args(n) + optional_args(n)) then
                  call me%add_error(j, ipos, funcstr, 'Too many function arguments')
                  return
@@ -1336,7 +1346,7 @@
             else
                 do iarg = 1, num_args
                     if (iarg == 1) then
-                        arg_start = j + 1 
+                        arg_start = j + 1
                     else
                         arg_start = arg_pos(iarg-1) + 2
                     endif
@@ -1346,7 +1356,7 @@
 
                     call me%check_syntax(func(arg_start:arg_end), funcstr, var, func_arg_ipos)
                     if (me%error()) return
-                end do           
+                end do
 
                 j = arg_pos(num_args) + 2
             endif
@@ -1518,7 +1528,7 @@
     character (len=len(functions)) :: fun
 
     n = 0
-    do j=cAbs,cTest3                          ! check all math functions
+    do j=cAbs,cIf                          ! check all math functions
        k = min(len_trim(functions(j)), len(str))
        call to_lowercase (str(1:k), fun)
        if (fun == functions(j)) then              ! compare lower case letters
@@ -1724,8 +1734,8 @@
             case (1);           me%bytecode_ops(me%bytecodesize)%f => catan_func
             case (2);           me%bytecode_ops(me%bytecodesize)%f => catan2_func
             end select
-        case (cTest0);          me%bytecode_ops(me%bytecodesize)%f => ctest0_func
-        case (cTest3);          me%bytecode_ops(me%bytecodesize)%f => ctest3_func
+        case (cPi);             me%bytecode_ops(me%bytecodesize)%f => cPi_func
+        case (cIf);             me%bytecode_ops(me%bytecodesize)%f => cif_func
         case  default;          me%bytecode_ops(me%bytecodesize)%f => cdefault_func
         end select
 
@@ -1749,7 +1759,7 @@
     integer :: n  !! byte value of math item
 
     n = 0
-    if (len(f)==0) return ! error condition 
+    if (len(f)==0) return ! error condition
 
     if (scan(f(1:1),'0123456789.') > 0) then ! check for begin of a number
         me%immedsize = me%immedsize + 1
@@ -1845,7 +1855,7 @@
                     end do
                 else
                     me%stackptr = me%stackptr + 1
-                    if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1                    
+                    if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1
                 end if
 
                 call add_compiled_byte (me, n, num_args)
@@ -1877,7 +1887,7 @@
                         end do
                     else
                         me%stackptr = me%stackptr + 1
-                        if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1  
+                        if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1
                     end if
 
                     call add_compiled_byte (me, n, num_args)
