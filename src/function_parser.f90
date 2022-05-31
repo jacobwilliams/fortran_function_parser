@@ -1804,6 +1804,7 @@
     integer :: j,k
 
     res=.false.
+    if (b==0 .or. e==0) return
     if (f(b:b) == '(' .and. f(e:e) == ')') then
         k = 0
         do j=b+1,e-1
