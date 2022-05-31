@@ -254,16 +254,22 @@
 !*******************************************************************************
 
 !*******************************************************************************
+!>
+!
+!### Notes
+!  * This one has cases where a variable has the same name as a built-in function.
+!    So, for some expressions we want the function, and others we want the variable.
+
     subroutine fptest6()
 
     implicit none
 
-    integer, parameter :: nfunc = 14
+    integer, parameter :: nfunc = 17
     character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x                           ',  &
                                                                 '-sqrt(x)                         ',  &
                                                                 'a*COS(b*x)+5                     ',  &
                                                                 'a*COS(b*x)+5.0                   ', &
-                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)',&
+                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)', &
                                                                 'sinh(x)                          ', &
                                                                 'cosh(x)                          ', &
                                                                 'tanh(x)                          ', &
@@ -272,18 +278,22 @@
                                                                 'acos(y)                          ', &
                                                                 'atan(y)                          ', &
                                                                 '-x**2                            ', &
-                                                                '-x^2                             ' ]
-    integer, parameter :: nvar = 4
-    character (len=*), dimension(nvar),  parameter :: var  = [  'x', &
-                                                                'a', &
-                                                                'b', &
-                                                                'y'  ]
-    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, 3.0_wp, 4.0_wp, 0.1_wp ]
+                                                                '-x^2                             ', &
+                                                                'sin(x)                           ', &
+                                                                'sin*2                            ', &
+                                                                '2*(sin)*sin+1-sin(x)             ' ]
+    integer, parameter :: nvar = 5
+    character (len=*), dimension(nvar),  parameter :: var  = [  'x  ', &
+                                                                'a  ', &
+                                                                'b  ', &
+                                                                'y  ', &
+                                                                'sin'  ]  !! sin is a built-in function
+    real(wp), dimension(nvar),  parameter :: val  = [  2.0_wp, 3.0_wp, 4.0_wp, 0.1_wp, 1.0_wp ]
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
     integer :: i  !! counter
-    real(wp) :: x,a,b,y
+    real(wp) :: x,a,b,y,s
 
     write(*,*) ''
     write(*,*) ' Test 6'
@@ -304,6 +314,7 @@
         a  = val(2)
         b  = val(3)
         y  = val(4)
+        s  = val(5)
         call compare(func(1),  -1.0_wp*x, res(1))
         call compare(func(2),  -sqrt(x), res(2))
         call compare(func(3),  a*cos(b*x)+5, res(3))
@@ -318,6 +329,9 @@
         call compare(func(12), atan(y), res(12))
         call compare(func(13), -x**2,   res(13))
         call compare(func(14), -x**2,   res(14))
+        call compare(func(15), sin(x),  res(15))
+        call compare(func(16), 2.0_wp,  res(16))
+        call compare(func(17), 2*(s)*s+1-sin(x), res(17))
     end if
 
     end subroutine fptest6

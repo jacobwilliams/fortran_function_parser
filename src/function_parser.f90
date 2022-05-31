@@ -1301,7 +1301,7 @@
         end if
 
         end_of_function = .false.
-        n = mathfunction_index (func(j:))
+        n = mathfunction_index (func(j:), var)
         if (n > 0) then                                       ! Check for math function
             j = j+len_trim(functions(n))
             if (j > lFunc) then
@@ -1310,9 +1310,9 @@
             end if
             c = func(j:j)
             if (c /= '(') then
-                write(*,*) 'here', funcstr
-                write(*,*) 'j = ', j
-                write(*,*) 'c = ', c
+                ! write(*,*) 'here', funcstr
+                ! write(*,*) 'j = ', j
+                ! write(*,*) 'c = ', c
                 call me%add_error(j, ipos, funcstr, 'Missing opening parenthesis')
                 return
             end if
@@ -1336,8 +1336,8 @@
                 call me%add_error(j, ipos, funcstr, 'Missing required function argument')
                 return
             elseif (num_args > required_args(n) + optional_args(n)) then
-                 call me%add_error(j, ipos, funcstr, 'Too many function arguments')
-                 return
+                call me%add_error(j, ipos, funcstr, 'Too many function arguments')
+                return
             end if
 
             ! Recursively check each argument substring.
@@ -1516,11 +1516,12 @@
 !>
 !  Return index of math function beginning at 1st position of string `str`
 
-    function mathfunction_index (str) result (n)
+    function mathfunction_index (str, var) result (n)
 
     implicit none
 
     character(len=*), intent(in) :: str
+    character(len=*), dimension(:),intent(in) :: var        !! array with variable names
     integer :: n
 
     integer :: j
@@ -1536,6 +1537,19 @@
           exit
        end if
     end do
+
+    if (n>0) then
+        if (any(functions(n) == var)) then
+            ! in this case, there is a variable with the same
+            ! name as this function. So, check to make sure this
+            ! is really the function.
+            if (k+1<=len(str)) then
+                if (str(k+1:k+1) /= '(') then  ! this assumes that spaces have been removed
+                    n = 0  ! assume it is the variable
+                end if
+            end if
+        end if
+    end if
 
     end function mathfunction_index
 !*******************************************************************************
@@ -1785,8 +1799,8 @@
 
     character (len=*), intent(in) :: f    !! function substring
     integer,           intent(in) :: b,e  !! first and last pos. of substring
-
     logical :: res
+
     integer :: j,k
 
     res=.false.
@@ -1836,7 +1850,7 @@
         call compile_substr (me, f, b+1, e-1, var)
         return
     elseif (scan(f(b:b),calpha) > 0) then
-        n = mathfunction_index (f(b:e))
+        n = mathfunction_index (f(b:e), var)
         if (n > 0) then
             b2 = b+index(f(b:e),'(')-1
             if (completely_enclosed(f, b2, e)) then             ! case 3: f(b:e) = 'fcn(...)'
@@ -1868,7 +1882,7 @@
             call add_compiled_byte (me, cneg)
             return
         elseif (scan(f(b+1:b+1),calpha) > 0) then
-            n = mathfunction_index (f(b+1:e))
+            n = mathfunction_index (f(b+1:e), var)
             if (n > 0) then
                 b2 = b+index(f(b+1:e),'(')
                 if (completely_enclosed(f, b2, e)) then          ! case 5: f(b:e) = '-fcn(...)'
