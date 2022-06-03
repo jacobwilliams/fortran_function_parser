@@ -62,8 +62,17 @@
                             cAtan2   = 21, &    ! atan2 must precede atan to prevent aliasing.
                             cAtan    = 22, &
                             cPi      = 23, &    ! Pi (function with zero arguments)
-                            cIf      = 24       ! Test function with 3 arguments (returns sum of arguments).
-    integer, parameter ::   VarBegin = 25
+                            cCeil    = 24, &
+                            cFloor   = 25, &
+                            cGamma   = 26, &
+                            cHypot   = 27, &
+                            cMax     = 28, &
+                            cMin     = 29, &
+                            cModulo  = 30, &
+                            cMod     = 31, &
+                            cSign    = 32, &
+                            cIf      = 33     ! if (three arguments)
+    integer, parameter ::   VarBegin = 34
 
     character(len=1), dimension(cAdd:cPow), parameter ::  operators = [ '+', &  ! plus
                                                                         '-', &  ! minus
@@ -71,61 +80,88 @@
                                                                         '/', &  ! divide
                                                                         '^'  ]  ! power
 
-    character(len=5), dimension(cAbs:cIf), parameter :: functions = [    'abs  ', &
-                                                                         'exp  ', &
-                                                                         'log10', &
-                                                                         'log  ', &
-                                                                         'sqrt ', &
-                                                                         'sinh ', &
-                                                                         'cosh ', &
-                                                                         'tanh ', &
-                                                                         'sin  ', &
-                                                                         'cos  ', &
-                                                                         'tan  ', &
-                                                                         'asin ', &
-                                                                         'acos ', &
-                                                                         'atan2', &
-                                                                         'atan ', &
-                                                                         'pi   ', &
-                                                                         'if   ' ]
+    character(len=7), dimension(cAbs:cIf), parameter :: functions = [    'abs    ', &
+                                                                         'exp    ', &
+                                                                         'log10  ', &
+                                                                         'log    ', &
+                                                                         'sqrt   ', &
+                                                                         'sinh   ', &
+                                                                         'cosh   ', &
+                                                                         'tanh   ', &
+                                                                         'sin    ', &
+                                                                         'cos    ', &
+                                                                         'tan    ', &
+                                                                         'asin   ', &
+                                                                         'acos   ', &
+                                                                         'atan2  ', &
+                                                                         'atan   ', &
+                                                                         'pi     ', &
+                                                                         'ceiling', &
+                                                                         'floor  ', &
+                                                                         'gamma  ', &
+                                                                         'hypot  ', &
+                                                                         'max    ', &
+                                                                         'min    ', &
+                                                                         'modulo ', &
+                                                                         'mod    ', &
+                                                                         'sign   ', &
+                                                                         'if     ' ]
 
     ! Specify the number of required arguments each `functions` element must have.
     integer, dimension(cAbs:cIf), parameter :: required_args = [ 1, & ! abs
-                                                                    1, & ! exp
-                                                                    1, & ! log10
-                                                                    1, & ! log
-                                                                    1, & ! sqrt
-                                                                    1, & ! sinh
-                                                                    1, & ! cosh
-                                                                    1, & ! tanh
-                                                                    1, & ! sin
-                                                                    1, & ! cos
-                                                                    1, & ! tan
-                                                                    1, & ! asin
-                                                                    1, & ! acos
-                                                                    2, & ! atan2
-                                                                    1, & ! atan
-                                                                    0, & ! pi
-                                                                    3  ] ! if
+                                                                 1, & ! exp
+                                                                 1, & ! log10
+                                                                 1, & ! log
+                                                                 1, & ! sqrt
+                                                                 1, & ! sinh
+                                                                 1, & ! cosh
+                                                                 1, & ! tanh
+                                                                 1, & ! sin
+                                                                 1, & ! cos
+                                                                 1, & ! tan
+                                                                 1, & ! asin
+                                                                 1, & ! acos
+                                                                 2, & ! atan2
+                                                                 1, & ! atan
+                                                                 0, & ! pi
+                                                                 1, & ! Ceiling
+                                                                 1, & ! Floor
+                                                                 1, & ! Gamma
+                                                                 2, & ! Hypot
+                                                                 2, & ! Max
+                                                                 2, & ! Min
+                                                                 2, & ! Modulo
+                                                                 2, & ! Mod
+                                                                 2, & ! Sign
+                                                                 3  ] ! if
 
     ! Specify the number of optional arguments each `functions` element might have.
     integer, dimension(cAbs:cIf), parameter :: optional_args = [ 0, & ! abs
-                                                                    0, & ! exp
-                                                                    0, & ! log10
-                                                                    0, & ! log
-                                                                    0, & ! sqrt
-                                                                    0, & ! sinh
-                                                                    0, & ! cosh
-                                                                    0, & ! tanh
-                                                                    0, & ! sin
-                                                                    0, & ! cos
-                                                                    0, & ! tan
-                                                                    0, & ! asin
-                                                                    0, & ! acos
-                                                                    0, & ! atan2
-                                                                    1, & ! atan
-                                                                    0, & ! pi
-                                                                    0  ] ! if
+                                                                 0, & ! exp
+                                                                 0, & ! log10
+                                                                 0, & ! log
+                                                                 0, & ! sqrt
+                                                                 0, & ! sinh
+                                                                 0, & ! cosh
+                                                                 0, & ! tanh
+                                                                 0, & ! sin
+                                                                 0, & ! cos
+                                                                 0, & ! tan
+                                                                 0, & ! asin
+                                                                 0, & ! acos
+                                                                 0, & ! atan2
+                                                                 1, & ! atan
+                                                                 0, & ! pi
+                                                                 0, & ! Ceiling
+                                                                 0, & ! Floor
+                                                                 0, & ! Gamma
+                                                                 0, & ! Hypot
+                                                                 0, & ! Max
+                                                                 0, & ! Min
+                                                                 0, & ! Modulo
+                                                                 0, & ! Mod
+                                                                 0, & ! Sign
+                                                                 0  ] ! if
 
     ! The maximum number of arguments any `functions` element might have.
     integer, parameter :: max_func_args = maxval(required_args + optional_args)
@@ -1065,6 +1101,201 @@
 
 !******************************************************************
 !>
+!  ceiling function
+
+    subroutine cceil_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp) = ceiling(me%stack(sp))
+    ierr = 0
+
+    end subroutine cceil_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  floor function
+
+    subroutine cfloor_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp) = floor(me%stack(sp))
+    ierr = 0
+
+    end subroutine cfloor_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  gamma function
+
+    subroutine cgamma_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp) = gamma(me%stack(sp))
+    ierr = 0
+
+    end subroutine cgamma_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  hypot function
+
+    subroutine chypot_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = hypot(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine chypot_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  max function
+
+    subroutine cmax_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = max(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmax_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  min function
+
+    subroutine cmin_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = min(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmin_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  mod function
+
+    subroutine cmod_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = mod(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmod_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  modulo function
+
+    subroutine cmodulo_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = modulo(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmodulo_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  sign function
+
+    subroutine csign_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = sign(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine csign_func
+!******************************************************************
+
+!******************************************************************
+!>
 !  If function with three arguments.
 !
 !  `If(expression, value is true, value if false)`
@@ -1749,6 +1980,17 @@
             case (2);           me%bytecode_ops(me%bytecodesize)%f => catan2_func
             end select
         case (cPi);             me%bytecode_ops(me%bytecodesize)%f => cPi_func
+
+        case(cCeil);            me%bytecode_ops(me%bytecodesize)%f => cceil_func
+        case(cFloor);           me%bytecode_ops(me%bytecodesize)%f => cfloor_func
+        case(cGamma);           me%bytecode_ops(me%bytecodesize)%f => cgamma_func
+        case(cHypot);           me%bytecode_ops(me%bytecodesize)%f => chypot_func
+        case(cMax);             me%bytecode_ops(me%bytecodesize)%f => cmax_func
+        case(cMin);             me%bytecode_ops(me%bytecodesize)%f => cmin_func
+        case(cMod);             me%bytecode_ops(me%bytecodesize)%f => cmod_func
+        case(cModulo);          me%bytecode_ops(me%bytecodesize)%f => cmodulo_func
+        case(cSign);            me%bytecode_ops(me%bytecodesize)%f => csign_func
+
         case (cIf);             me%bytecode_ops(me%bytecodesize)%f => cif_func
         case  default;          me%bytecode_ops(me%bytecodesize)%f => cdefault_func
         end select

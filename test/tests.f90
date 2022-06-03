@@ -261,24 +261,34 @@
 
     implicit none
 
-    integer, parameter :: nfunc = 17
-    character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x                           ',  &
-                                                                '-sqrt(x)                         ',  &
-                                                                'a*COS(b*x)+5                     ',  &
-                                                                'a*COS(b*x)+5.0                   ', &
-                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)', &
-                                                                'sinh(x)                          ', &
-                                                                'cosh(x)                          ', &
-                                                                'tanh(x)                          ', &
-                                                                'tan(x)                           ', &
-                                                                'asin(y)                          ', &
-                                                                'acos(y)                          ', &
-                                                                'atan(y)                          ', &
-                                                                '-x**2                            ', &
-                                                                '-x^2                             ', &
-                                                                'sin(x)                           ', &
-                                                                'sin*2                            ', &
-                                                                '2*(sin)*sin+1-sin(x)             ' ]
+    integer, parameter :: nfunc = 26
+    character (len=*), dimension(nfunc), parameter :: func = [  '-1.0*x                               ',  &
+                                                                '-sqrt(x)                             ',  &
+                                                                'a*COS(b*x)+5                         ',  &
+                                                                'a*COS(b*x)+5.0                       ', &
+                                                                'exp(x)-abs(x)+log(1.0)+log10(1.0)    ', &
+                                                                'sinh(x)                              ', &
+                                                                'cosh(x)                              ', &
+                                                                'tanh(x)                              ', &
+                                                                'tan(x)                               ', &
+                                                                'asin(y)                              ', &
+                                                                'acos(y)                              ', &
+                                                                'atan(y)                              ', &
+                                                                '-x**2                                ', &
+                                                                '-x^2                                 ', &
+                                                                'sin(x)                               ', &
+                                                                'sin*2                                ', &
+                                                                '2*(sin)*sin+1-sin(x)                 ', &
+                                                                'ceiling(1.1) + ceiling(1.1)          ', &
+                                                                'floor(1.1) + floor(1.1)              ', &
+                                                                'gamma(2.0)                           ', &
+                                                                'hypot(1.0, 2.0)                      ', &
+                                                                'max(1.0, 2.0)                        ', &
+                                                                'min(1.0, 2.0)                        ', &
+                                                                'modulo(180.0, -23.0)+mod(180.0, 23.0)', &
+                                                                'mod(180.0, 23.0)+modulo(180.0, 23.0) ', &
+                                                                'sign(1.0, -2.0)                      ' ]
+
     integer, parameter :: nvar = 5
     character (len=*), dimension(nvar),  parameter :: var  = [  'x  ', &
                                                                 'a  ', &
@@ -311,23 +321,33 @@
         b  = val(3)
         y  = val(4)
         s  = val(5)
-        call compare(func(1),  -1.0_wp*x, res(1))
-        call compare(func(2),  -sqrt(x), res(2))
-        call compare(func(3),  a*cos(b*x)+5, res(3))
-        call compare(func(4),  a*cos(b*x)+5.0, res(4))
-        call compare(func(5),  exp(x)-abs(x)+log(1.0)+log10(1.0), res(5))
-        call compare(func(6),  sinh(x), res(6))
-        call compare(func(7),  cosh(x), res(7))
-        call compare(func(8),  tanh(x), res(8))
-        call compare(func(9),  tan(x),  res(9))
-        call compare(func(10), asin(y), res(10))
-        call compare(func(11), acos(y), res(11))
-        call compare(func(12), atan(y), res(12))
-        call compare(func(13), -x**2,   res(13))
-        call compare(func(14), -x**2,   res(14))
-        call compare(func(15), sin(x),  res(15))
-        call compare(func(16), 2.0_wp,  res(16))
-        call compare(func(17), 2*(s)*s+1-sin(x), res(17))
+        call compare(func(1),  -1.0_wp*x,                          res(1))
+        call compare(func(2),  -sqrt(x),                           res(2))
+        call compare(func(3),  a*cos(b*x)+5,                       res(3))
+        call compare(func(4),  a*cos(b*x)+5.0,                     res(4))
+        call compare(func(5),  exp(x)-abs(x)+log(1.0)+log10(1.0),  res(5))
+        call compare(func(6),  sinh(x),                            res(6))
+        call compare(func(7),  cosh(x),                            res(7))
+        call compare(func(8),  tanh(x),                            res(8))
+        call compare(func(9),  tan(x),                             res(9))
+        call compare(func(10), asin(y),                            res(10))
+        call compare(func(11), acos(y),                            res(11))
+        call compare(func(12), atan(y),                            res(12))
+        call compare(func(13), -x**2,                              res(13))
+        call compare(func(14), -x**2,                              res(14))
+        call compare(func(15), sin(x),                             res(15))
+        call compare(func(16), 2.0_wp,                             res(16))
+        call compare(func(17), 2*(s)*s+1-sin(x),                   res(17))
+        call compare(func(18), real(ceiling(1.1_wp) + ceiling(1.1_wp), wp) , res(18))
+        call compare(func(19), real(floor(1.1_wp) + floor(1.1_wp), wp)     , res(19))
+        call compare(func(20), gamma(2.0_wp)                     , res(20))
+        call compare(func(21), hypot(1.0_wp, 2.0_wp)             , res(21))
+        call compare(func(22), max(1.0_wp, 2.0_wp)               , res(22))
+        call compare(func(23), min(1.0_wp, 2.0_wp)               , res(23))
+        call compare(func(24), modulo(180.0_wp, -23.0_wp)+mod(180.0_wp, 23.0_wp)            , res(24))
+        call compare(func(25), mod(180.0_wp, 23.0_wp)+modulo(180.0_wp, 23.0_wp)         , res(25))
+        call compare(func(26), sign(1.0_wp, -2.0_wp)             , res(26))
+
     end if
 
     end subroutine fptest6
