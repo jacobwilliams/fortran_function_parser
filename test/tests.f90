@@ -77,7 +77,6 @@
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
-    integer :: i  !! counter
     real(wp) :: a0,b0,a1,b1,a3,b3
 
     write(*,*) ''
@@ -125,7 +124,6 @@
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
-    integer :: i  !! counter
     real(wp) :: vel,alpha,beta
 
     write(*,*) ''
@@ -174,7 +172,7 @@
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
-    integer  :: i,n
+    integer  :: n
     real     :: rt1,rt2,rt3
     real(wp) :: vel,alpha,beta
 
@@ -230,7 +228,6 @@
 
     type(fparser) :: parser
     real(wp) :: res
-    real(wp) :: x
 
     write(*,*) ''
     write(*,*) ' Test 5'
@@ -292,7 +289,6 @@
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
-    integer :: i  !! counter
     real(wp) :: x,a,b,y,s
 
     write(*,*) ''
@@ -373,7 +369,6 @@
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
-    integer :: i  !! counter
     real(wp) :: x,y,z
 
     write(*,*) ''
@@ -446,8 +441,7 @@
 
     type(fparser_array) :: parser
     real(wp),dimension(nfunc) :: res
-    integer :: i  !! counter
-    real(wp) :: x,y,z,s
+    real(wp) :: x,y,z
 
     write(*,*) ''
     write(*,*) ' Test 8'
@@ -527,7 +521,6 @@
     subroutine parse_error(parser,str,var,val)
         type(fparser_array),intent(inout) :: parser
         character(len=*),intent(in) :: str !! expression with a parsing error
-        real(wp),dimension(1) :: res
         character(len=*),dimension(:),intent(in) :: var
         real(wp),dimension(:),intent(in) :: val
         call parser%parse([str], var)  ! parse and bytecompile function string
