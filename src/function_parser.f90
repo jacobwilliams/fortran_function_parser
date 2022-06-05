@@ -35,6 +35,7 @@
     !parameters:
     real(wp), parameter :: zero = 0.0_wp
     real(wp), parameter :: one  = 1.0_wp
+    real(wp), parameter :: pi = acos(-one)
 
     ! Note: these should be continuous, unique integers:
     ! [they must have the values that correspond to the array indices below]
@@ -60,9 +61,18 @@
                             cAcos    = 20, &
                             cAtan2   = 21, &    ! atan2 must precede atan to prevent aliasing.
                             cAtan    = 22, &
-                            cTest0   = 23, &    ! Test function with 0 arguments (returns 15.0).
-                            cTest3   = 24       ! Test function with 3 arguments (returns sum of arguments).
-    integer, parameter ::   VarBegin = 25
+                            cPi      = 23, &    ! Pi (function with zero arguments)
+                            cCeil    = 24, &
+                            cFloor   = 25, &
+                            cGamma   = 26, &
+                            cHypot   = 27, &
+                            cMax     = 28, &
+                            cMin     = 29, &
+                            cModulo  = 30, &
+                            cMod     = 31, &
+                            cSign    = 32, &
+                            cIf      = 33     ! if (three arguments)
+    integer, parameter ::   VarBegin = 34
 
     character(len=1), dimension(cAdd:cPow), parameter ::  operators = [ '+', &  ! plus
                                                                         '-', &  ! minus
@@ -70,61 +80,88 @@
                                                                         '/', &  ! divide
                                                                         '^'  ]  ! power
 
-    character(len=5), dimension(cAbs:cTest3), parameter :: functions = [ 'abs  ', &
-                                                                         'exp  ', &
-                                                                         'log10', &
-                                                                         'log  ', &
-                                                                         'sqrt ', &
-                                                                         'sinh ', &
-                                                                         'cosh ', &
-                                                                         'tanh ', &
-                                                                         'sin  ', &
-                                                                         'cos  ', &
-                                                                         'tan  ', &
-                                                                         'asin ', &
-                                                                         'acos ', &
-                                                                         'atan2', &
-                                                                         'atan ', &
-                                                                         'test0', &
-                                                                         'test3' ]
+    character(len=7), dimension(cAbs:cIf), parameter :: functions = [    'abs    ', &
+                                                                         'exp    ', &
+                                                                         'log10  ', &
+                                                                         'log    ', &
+                                                                         'sqrt   ', &
+                                                                         'sinh   ', &
+                                                                         'cosh   ', &
+                                                                         'tanh   ', &
+                                                                         'sin    ', &
+                                                                         'cos    ', &
+                                                                         'tan    ', &
+                                                                         'asin   ', &
+                                                                         'acos   ', &
+                                                                         'atan2  ', &
+                                                                         'atan   ', &
+                                                                         'pi     ', &
+                                                                         'ceiling', &
+                                                                         'floor  ', &
+                                                                         'gamma  ', &
+                                                                         'hypot  ', &
+                                                                         'max    ', &
+                                                                         'min    ', &
+                                                                         'modulo ', &
+                                                                         'mod    ', &
+                                                                         'sign   ', &
+                                                                         'if     ' ]
 
     ! Specify the number of required arguments each `functions` element must have.
-    integer, dimension(cAbs:cTest3), parameter :: required_args = [ 1, & ! abs
-                                                                    1, & ! exp
-                                                                    1, & ! log10
-                                                                    1, & ! log
-                                                                    1, & ! sqrt
-                                                                    1, & ! sinh
-                                                                    1, & ! cosh
-                                                                    1, & ! tanh
-                                                                    1, & ! sin
-                                                                    1, & ! cos
-                                                                    1, & ! tan
-                                                                    1, & ! asin
-                                                                    1, & ! acos
-                                                                    2, & ! atan2
-                                                                    1, & ! atan
-                                                                    0, & ! test0
-                                                                    3  ] ! test3
+    integer, dimension(cAbs:cIf), parameter :: required_args = [ 1, & ! abs
+                                                                 1, & ! exp
+                                                                 1, & ! log10
+                                                                 1, & ! log
+                                                                 1, & ! sqrt
+                                                                 1, & ! sinh
+                                                                 1, & ! cosh
+                                                                 1, & ! tanh
+                                                                 1, & ! sin
+                                                                 1, & ! cos
+                                                                 1, & ! tan
+                                                                 1, & ! asin
+                                                                 1, & ! acos
+                                                                 2, & ! atan2
+                                                                 1, & ! atan
+                                                                 0, & ! pi
+                                                                 1, & ! Ceiling
+                                                                 1, & ! Floor
+                                                                 1, & ! Gamma
+                                                                 2, & ! Hypot
+                                                                 2, & ! Max
+                                                                 2, & ! Min
+                                                                 2, & ! Modulo
+                                                                 2, & ! Mod
+                                                                 2, & ! Sign
+                                                                 3  ] ! if
 
     ! Specify the number of optional arguments each `functions` element might have.
-    integer, dimension(cAbs:cTest3), parameter :: optional_args = [ 0, & ! abs
-                                                                    0, & ! exp
-                                                                    0, & ! log10
-                                                                    0, & ! log
-                                                                    0, & ! sqrt
-                                                                    0, & ! sinh
-                                                                    0, & ! cosh
-                                                                    0, & ! tanh
-                                                                    0, & ! sin
-                                                                    0, & ! cos
-                                                                    0, & ! tan
-                                                                    0, & ! asin
-                                                                    0, & ! acos
-                                                                    0, & ! atan2
-                                                                    1, & ! atan
-                                                                    0, & ! test0
-                                                                    0  ] ! test3
+    integer, dimension(cAbs:cIf), parameter :: optional_args = [ 0, & ! abs
+                                                                 0, & ! exp
+                                                                 0, & ! log10
+                                                                 0, & ! log
+                                                                 0, & ! sqrt
+                                                                 0, & ! sinh
+                                                                 0, & ! cosh
+                                                                 0, & ! tanh
+                                                                 0, & ! sin
+                                                                 0, & ! cos
+                                                                 0, & ! tan
+                                                                 0, & ! asin
+                                                                 0, & ! acos
+                                                                 0, & ! atan2
+                                                                 1, & ! atan
+                                                                 0, & ! pi
+                                                                 0, & ! Ceiling
+                                                                 0, & ! Floor
+                                                                 0, & ! Gamma
+                                                                 0, & ! Hypot
+                                                                 0, & ! Max
+                                                                 0, & ! Min
+                                                                 0, & ! Modulo
+                                                                 0, & ! Mod
+                                                                 0, & ! Sign
+                                                                 0  ] ! if
 
     ! The maximum number of arguments any `functions` element might have.
     integer, parameter :: max_func_args = maxval(required_args + optional_args)
@@ -398,7 +435,7 @@
     logical,intent(in),optional                :: case_sensitive  !! are the variables case sensitive?
                                                                   !! [default is false]
 
-    character (len=len(funcstr))                 :: func     !! function string, local use
+    character (len=:),allocatable                :: func     !! function string, local use
     character(len=len(var)),dimension(size(var)) :: tmp_var  !! variable list, local use
     integer,dimension(:),allocatable             :: ipos
 
@@ -415,11 +452,11 @@
     call me%destroy()
 
     !if is case insensitive, then convert both to lowercase:
+    func = trim(adjustl(funcstr))   ! local copy of function string
     if (is_case_sensitive) then
-        func    = funcstr   ! local copy of function string
         tmp_var = var
     else
-        call to_lowercase (funcstr, func) ! local copy of function string
+        call to_lowercase (func, func)    ! local copy of function string
         call to_lowercase (var, tmp_var)  !
     end if
 
@@ -1042,9 +1079,9 @@
 
 !******************************************************************
 !>
-!  Test function with zero arguments.
+!  Pi. A function with zero arguments.
 
-    subroutine ctest0_func(me,ip,dp,sp,val,ierr)
+    subroutine cPi_func(me,ip,dp,sp,val,ierr)
 
     implicit none
 
@@ -1056,17 +1093,17 @@
     integer,intent(out)              :: ierr  !! error flag
 
     sp = sp + 1
-    me%stack(sp) = 15.0_wp
+    me%stack(sp) = pi
     ierr = 0
 
-    end subroutine ctest0_func
+    end subroutine cPi_func
 !******************************************************************
 
 !******************************************************************
 !>
-!  Test function with three arguments.
+!  ceiling function
 
-    subroutine ctest3_func(me,ip,dp,sp,val,ierr)
+    subroutine cceil_func(me,ip,dp,sp,val,ierr)
 
     implicit none
 
@@ -1077,11 +1114,215 @@
     real(wp),dimension(:),intent(in) :: val   !! variable values
     integer,intent(out)              :: ierr  !! error flag
 
-    me%stack(sp-2) = me%stack(sp-2) + me%stack(sp-1) + me%stack(sp)
+    me%stack(sp) = ceiling(me%stack(sp))
+    ierr = 0
+
+    end subroutine cceil_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  floor function
+
+    subroutine cfloor_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp) = floor(me%stack(sp))
+    ierr = 0
+
+    end subroutine cfloor_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  gamma function
+
+    subroutine cgamma_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp) = gamma(me%stack(sp))
+    ierr = 0
+
+    end subroutine cgamma_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  hypot function
+
+    subroutine chypot_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = hypot(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine chypot_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  max function
+
+    subroutine cmax_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = max(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmax_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  min function
+
+    subroutine cmin_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = min(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmin_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  mod function
+
+    subroutine cmod_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = mod(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmod_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  modulo function
+
+    subroutine cmodulo_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = modulo(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine cmodulo_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  sign function
+
+    subroutine csign_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    me%stack(sp-1) = sign(me%stack(sp-1), me%stack(sp))
+    sp = sp - 1
+    ierr = 0
+
+    end subroutine csign_func
+!******************************************************************
+
+!******************************************************************
+!>
+!  If function with three arguments.
+!
+!  `If(expression, value is true, value if false)`
+!
+!  Where: 0 is false and /=0 is true.
+
+    subroutine cif_func(me,ip,dp,sp,val,ierr)
+
+    implicit none
+
+    class(fparser),intent(inout)     :: me
+    integer,intent(in)               :: ip    !! instruction pointer
+    integer,intent(inout)            :: dp    !! data pointer
+    integer,intent(inout)            :: sp    !! stack pointer
+    real(wp),dimension(:),intent(in) :: val   !! variable values
+    integer,intent(out)              :: ierr  !! error flag
+
+    if (me%stack(sp-2) /= zero) then ! true
+        me%stack(sp-2) = me%stack(sp-1)
+    else ! false
+        me%stack(sp-2) = me%stack(sp)
+    end if
+
     sp = sp - 2
     ierr = 0
 
-    end subroutine ctest3_func
+    end subroutine cif_func
 !******************************************************************
 
 !******************************************************************
@@ -1136,9 +1377,9 @@
     integer          :: cur_pos,         &      !! The current position in `func` being processed.
                         func_len,        &      !! The length of `func`.
                         open_parens,     &      !! The number of open parentheses.
-                        arg_len,         &      !! The length of an argument.      
+                        arg_len,         &      !! The length of an argument.
                         iarg                    !! Argument index.
-    
+
     ! Initialize outputs.
     num_args = 1
     arg_pos = 0
@@ -1147,14 +1388,14 @@
 
     func_len = len_trim(func)
     open_parens = 1
-   
+
     cur_pos = paren_start + 1
     func_len = len_trim(func)
 
     ! Step through the function string until we find the function's closing parenthesis.
     ! Every time we find a comma character at the same parentheses level as the function's
-    ! opening parenthesis, increment the number of arguments and record the previous 
-    ! argument's last character. 
+    ! opening parenthesis, increment the number of arguments and record the previous
+    ! argument's last character.
     do while (open_parens > 0)
         if (cur_pos > func_len) then
             ! The function did not have a closing parenthesis.
@@ -1176,7 +1417,7 @@
             end if
 
             open_parens = open_parens - 1
-            
+
             ! We have arrived at the function's closing parenthesis.
             if (open_parens == 0) arg_pos(num_args) = cur_pos - 1
 
@@ -1203,9 +1444,9 @@
     do iarg = 1, num_args
         if (iarg == 1) then
             arg_len = arg_pos(iarg) - paren_start
-        else 
+        else
             arg_len = arg_pos(iarg) - arg_pos(iarg - 1) - 1
-        endif       
+        endif
 
         if (arg_len == 0) then
             if (present(ierr)) ierr = empty_arg
@@ -1215,7 +1456,7 @@
     end do
 
     end subroutine find_arg_positions
-
+!*******************************************************************************
 
 !*******************************************************************************
 !>
@@ -1254,7 +1495,7 @@
          if (c == '(') then
             parcnt = parcnt + 1
          elseif (c == ')') then
-            parcnt = parcnt - 1            
+            parcnt = parcnt - 1
          end if
 
         if (parcnt < 0) then
@@ -1291,7 +1532,7 @@
         end if
 
         end_of_function = .false.
-        n = mathfunction_index (func(j:))
+        n = mathfunction_index (func(j:), var)
         if (n > 0) then                                       ! Check for math function
             j = j+len_trim(functions(n))
             if (j > lFunc) then
@@ -1300,19 +1541,16 @@
             end if
             c = func(j:j)
             if (c /= '(') then
-                write(*,*) 'here', funcstr
-                write(*,*) 'j = ', j
-                write(*,*) 'c = ', c
                 call me%add_error(j, ipos, funcstr, 'Missing opening parenthesis')
                 return
             end if
-            
+
             ! Find the number of function arguments and argument substring positions
             ! in `func`.
             call find_arg_positions(j, func, num_args, arg_pos, ierr, err_pos)
             if (ierr /= 0) then
                 select case (ierr)
-                    case     (1); call me%add_error(err_pos, ipos, funcstr, 'Missing function closing parenthesis')       
+                    case     (1); call me%add_error(err_pos, ipos, funcstr, 'Missing function closing parenthesis')
                     case     (2); call me%add_error(err_pos, ipos, funcstr, 'Function has too many arguments')
                     case     (3); call me%add_error(err_pos, ipos, funcstr, 'Function has an empty argument')
                     case default; call me%add_error(err_pos, ipos, funcstr, 'Unknown find argument position error')
@@ -1320,14 +1558,14 @@
                 return
             end if
 
-            ! Verify that the number of function arguments present is consistent 
+            ! Verify that the number of function arguments present is consistent
             ! with the specified function.
             if (num_args < required_args(n)) then
                 call me%add_error(j, ipos, funcstr, 'Missing required function argument')
-                return                
+                return
             elseif (num_args > required_args(n) + optional_args(n)) then
-                 call me%add_error(j, ipos, funcstr, 'Too many function arguments')
-                 return
+                call me%add_error(j, ipos, funcstr, 'Too many function arguments')
+                return
             end if
 
             ! Recursively check each argument substring.
@@ -1336,7 +1574,7 @@
             else
                 do iarg = 1, num_args
                     if (iarg == 1) then
-                        arg_start = j + 1 
+                        arg_start = j + 1
                     else
                         arg_start = arg_pos(iarg-1) + 2
                     endif
@@ -1346,7 +1584,7 @@
 
                     call me%check_syntax(func(arg_start:arg_end), funcstr, var, func_arg_ipos)
                     if (me%error()) return
-                end do           
+                end do
 
                 j = arg_pos(num_args) + 2
             endif
@@ -1471,7 +1709,7 @@
 
     call me%error_msg%add(' '//trim(funcstr))
 
-    tmp = repeat(' ',ipos(j))//'?'     ! Advance to the jth position
+    tmp = repeat(' ',ipos(min(j,size(ipos))))//'?'     ! Advance to the jth position
     call me%error_msg%add(tmp)
     deallocate(tmp)
 
@@ -1506,11 +1744,12 @@
 !>
 !  Return index of math function beginning at 1st position of string `str`
 
-    function mathfunction_index (str) result (n)
+    function mathfunction_index (str, var) result (n)
 
     implicit none
 
     character(len=*), intent(in) :: str
+    character(len=*), dimension(:),intent(in) :: var        !! array with variable names
     integer :: n
 
     integer :: j
@@ -1518,7 +1757,7 @@
     character (len=len(functions)) :: fun
 
     n = 0
-    do j=cAbs,cTest3                          ! check all math functions
+    do j=cAbs,cIf                          ! check all math functions
        k = min(len_trim(functions(j)), len(str))
        call to_lowercase (str(1:k), fun)
        if (fun == functions(j)) then              ! compare lower case letters
@@ -1526,6 +1765,19 @@
           exit
        end if
     end do
+
+    if (n>0) then
+        if (any(functions(n) == var)) then
+            ! in this case, there is a variable with the same
+            ! name as this function. So, check to make sure this
+            ! is really the function.
+            if (k+1<=len(str)) then
+                if (str(k+1:k+1) /= '(') then  ! this assumes that spaces have been removed
+                    n = 0  ! assume it is the variable
+                end if
+            end if
+        end if
+    end if
 
     end function mathfunction_index
 !*******************************************************************************
@@ -1724,8 +1976,19 @@
             case (1);           me%bytecode_ops(me%bytecodesize)%f => catan_func
             case (2);           me%bytecode_ops(me%bytecodesize)%f => catan2_func
             end select
-        case (cTest0);          me%bytecode_ops(me%bytecodesize)%f => ctest0_func
-        case (cTest3);          me%bytecode_ops(me%bytecodesize)%f => ctest3_func
+        case (cPi);             me%bytecode_ops(me%bytecodesize)%f => cPi_func
+
+        case(cCeil);            me%bytecode_ops(me%bytecodesize)%f => cceil_func
+        case(cFloor);           me%bytecode_ops(me%bytecodesize)%f => cfloor_func
+        case(cGamma);           me%bytecode_ops(me%bytecodesize)%f => cgamma_func
+        case(cHypot);           me%bytecode_ops(me%bytecodesize)%f => chypot_func
+        case(cMax);             me%bytecode_ops(me%bytecodesize)%f => cmax_func
+        case(cMin);             me%bytecode_ops(me%bytecodesize)%f => cmin_func
+        case(cMod);             me%bytecode_ops(me%bytecodesize)%f => cmod_func
+        case(cModulo);          me%bytecode_ops(me%bytecodesize)%f => cmodulo_func
+        case(cSign);            me%bytecode_ops(me%bytecodesize)%f => csign_func
+
+        case (cIf);             me%bytecode_ops(me%bytecodesize)%f => cif_func
         case  default;          me%bytecode_ops(me%bytecodesize)%f => cdefault_func
         end select
 
@@ -1749,7 +2012,7 @@
     integer :: n  !! byte value of math item
 
     n = 0
-    if (len(f)==0) return ! error condition 
+    if (len(f)==0) return ! error condition
 
     if (scan(f(1:1),'0123456789.') > 0) then ! check for begin of a number
         me%immedsize = me%immedsize + 1
@@ -1775,11 +2038,12 @@
 
     character (len=*), intent(in) :: f    !! function substring
     integer,           intent(in) :: b,e  !! first and last pos. of substring
-
     logical :: res
+
     integer :: j,k
 
     res=.false.
+    if (b==0 .or. e==0) return
     if (f(b:b) == '(' .and. f(e:e) == ')') then
         k = 0
         do j=b+1,e-1
@@ -1826,7 +2090,7 @@
         call compile_substr (me, f, b+1, e-1, var)
         return
     elseif (scan(f(b:b),calpha) > 0) then
-        n = mathfunction_index (f(b:e))
+        n = mathfunction_index (f(b:e), var)
         if (n > 0) then
             b2 = b+index(f(b:e),'(')-1
             if (completely_enclosed(f, b2, e)) then             ! case 3: f(b:e) = 'fcn(...)'
@@ -1845,7 +2109,7 @@
                     end do
                 else
                     me%stackptr = me%stackptr + 1
-                    if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1                    
+                    if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1
                 end if
 
                 call add_compiled_byte (me, n, num_args)
@@ -1858,7 +2122,7 @@
             call add_compiled_byte (me, cneg)
             return
         elseif (scan(f(b+1:b+1),calpha) > 0) then
-            n = mathfunction_index (f(b+1:e))
+            n = mathfunction_index (f(b+1:e), var)
             if (n > 0) then
                 b2 = b+index(f(b+1:e),'(')
                 if (completely_enclosed(f, b2, e)) then          ! case 5: f(b:e) = '-fcn(...)'
@@ -1877,7 +2141,7 @@
                         end do
                     else
                         me%stackptr = me%stackptr + 1
-                        if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1  
+                        if (me%stackptr > me%stacksize) me%stacksize = me%stacksize + 1
                     end if
 
                     call add_compiled_byte (me, n, num_args)
@@ -1897,7 +2161,7 @@
             elseif (f(j:j) == '(') then
                 k = k-1
             end if
-            if (k == 0 .and. f(j:j) == operators(io) .and. is_binary_operator (j, f)) then
+        if (k == 0 .and. f(j:j) == operators(io) .and. is_binary_operator (j, f)) then
                 if (any(f(j:j) == operators(cmul:cpow)) .and. f(b:b) == '-') then ! case 6: f(b:e) = '-...op...' with op > -
                     call compile_substr (me, f, b+1, e, var)
                     call add_compiled_byte (me, cneg)
@@ -1947,7 +2211,7 @@
     if (f(j:j) == '+' .or. f(j:j) == '-') then              ! plus or minus sign:
         if (j == 1) then                                    ! - leading unary operator ?
             res = .false.
-        elseif (scan(f(j-1:j-1),'+-*/^(') > 0) then         ! - other unary operator ?
+        elseif (scan(f(j-1:j-1),',+-*/^(') > 0) then        ! - other unary operator ?   (or comma from multi-arg functions)
             res = .false.
         elseif (scan(f(j+1:j+1),'0123456789') > 0 .and. &   ! - in exponent of real number ?
                 scan(f(j-1:j-1),'eEdD')       > 0) then
@@ -1968,7 +2232,7 @@
                     exit                                    !   * all other characters
                 end if
             end do
-            if (dflag .and. (k == 1 .or. scan(f(k:k),'+-*/^(') > 0)) res = .false.
+            if (dflag .and. (k == 1 .or. scan(f(k:k),',+-*/^(') > 0)) res = .false.  ! need the comma here too ??
         end if
     end if
 
