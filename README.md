@@ -26,9 +26,16 @@ fpm build --release
 
 To use `fortran_function_parser` within your fpm project, add the following to your `fpm.toml` file:
 
-```yml
+```toml
 [dependencies]
 fortran_function_parser = { git="https://github.com/jacobwilliams/fortran_function_parser.git" }
+```
+
+Or, to use a specific version:
+
+```toml
+[dependencies]
+fortran_function_parser = { git="https://github.com/jacobwilliams/fortran_function_parser.git", tag = "1.1.0" }
 ```
 
 ### Documentation
