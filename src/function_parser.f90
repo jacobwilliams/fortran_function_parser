@@ -435,7 +435,7 @@
     logical,intent(in),optional                :: case_sensitive  !! are the variables case sensitive?
                                                                   !! [default is false]
 
-    character (len=len(funcstr))                 :: func     !! function string, local use
+    character (len=:),allocatable                :: func     !! function string, local use
     character(len=len(var)),dimension(size(var)) :: tmp_var  !! variable list, local use
     integer,dimension(:),allocatable             :: ipos
 
@@ -452,11 +452,11 @@
     call me%destroy()
 
     !if is case insensitive, then convert both to lowercase:
+    func = trim(adjustl(funcstr))   ! local copy of function string
     if (is_case_sensitive) then
-        func    = funcstr   ! local copy of function string
         tmp_var = var
     else
-        call to_lowercase (funcstr, func) ! local copy of function string
+        call to_lowercase (func, func)    ! local copy of function string
         call to_lowercase (var, tmp_var)  !
     end if
 
@@ -1541,9 +1541,6 @@
             end if
             c = func(j:j)
             if (c /= '(') then
-                ! write(*,*) 'here', funcstr
-                ! write(*,*) 'j = ', j
-                ! write(*,*) 'c = ', c
                 call me%add_error(j, ipos, funcstr, 'Missing opening parenthesis')
                 return
             end if
@@ -2164,7 +2161,7 @@
             elseif (f(j:j) == '(') then
                 k = k-1
             end if
-            if (k == 0 .and. f(j:j) == operators(io) .and. is_binary_operator (j, f)) then
+        if (k == 0 .and. f(j:j) == operators(io) .and. is_binary_operator (j, f)) then
                 if (any(f(j:j) == operators(cmul:cpow)) .and. f(b:b) == '-') then ! case 6: f(b:e) = '-...op...' with op > -
                     call compile_substr (me, f, b+1, e, var)
                     call add_compiled_byte (me, cneg)
@@ -2214,7 +2211,7 @@
     if (f(j:j) == '+' .or. f(j:j) == '-') then              ! plus or minus sign:
         if (j == 1) then                                    ! - leading unary operator ?
             res = .false.
-        elseif (scan(f(j-1:j-1),'+-*/^(') > 0) then         ! - other unary operator ?
+        elseif (scan(f(j-1:j-1),',+-*/^(') > 0) then        ! - other unary operator ?   (or comma from multi-arg functions)
             res = .false.
         elseif (scan(f(j+1:j+1),'0123456789') > 0 .and. &   ! - in exponent of real number ?
                 scan(f(j-1:j-1),'eEdD')       > 0) then
@@ -2235,7 +2232,7 @@
                     exit                                    !   * all other characters
                 end if
             end do
-            if (dflag .and. (k == 1 .or. scan(f(k:k),'+-*/^(') > 0)) res = .false.
+            if (dflag .and. (k == 1 .or. scan(f(k:k),',+-*/^(') > 0)) res = .false.  ! need the comma here too ??
         end if
     end if
 
