@@ -109,16 +109,24 @@ An error in the function parsing step leads to a detailed error message
 
 Although they have to be passed as array elements of the same declared
 length (Fortran restriction), the variable names can be of arbitrary
-actual length for the parser. Parsing for variables is case sensitive.
+actual length for the parser. By default, parsing for variables is case insensitive,
+but case sensitive evaluation is also an option.
 
 The syntax of the function string is similar to the Fortran convention.
 Mathematical Operators recognized are `+,` `-,` `*,` `/,` `**` or alternatively `^,`
 whereas symbols for brackets must be `()`.
 
 The function parser recognizes the (single argument) Fortran intrinsic
-functions `abs`, `exp`, `log10`, `log`, `sqrt`, `sinh`, `cosh`, `tanh`,
-`sin`, `cos`, `tan`, `asin`, `acos`, `atan`. Parsing for intrinsic
-functions is case INsensitive.
+functions:
+* `abs`, `acos`, `asin`, `atan`, `atan2`, `ceiling`, `cos`, `cosh`, `exp`, `floor`, `gamma`, `hypot`, `log`, `log10`, `max`, `min`, `mod`, `modulo`, `sign`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`
+
+In addition, the following zero-argument function:
+* `pi` -- Returns the value of $\pi$
+
+And the three-argument function:
+* `if` -- Logical comparision function. The syntax is: `if(expression, value if true, value if false)`, where 0.0 is false, and any other real value is true.
+
+Parsing for functions is always case INsensitive.
 
 Operations are evaluated in the correct order:
 
