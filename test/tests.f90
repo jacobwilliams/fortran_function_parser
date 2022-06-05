@@ -5,8 +5,8 @@
 
     program tests
 
-    use function_parser
-    use iso_fortran_env, only: wp => real64, output_unit
+    use function_parser, wp => fparser_rk
+    use iso_fortran_env, only: output_unit
 
     implicit none
 
