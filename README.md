@@ -167,11 +167,6 @@ one digit before or following an optional decimal point. Valid exponent
 identifiers are 'e', 'E', 'd' or 'D'. If they appear they must be followed
 by a valid exponent.
 
-### Notes
-
-* The precision of real numbers can be adapted to the calling program by
-  adjusting the KIND parameter `wp` in the module.
-
 ### Credits
 
 * This code is based on Fortran 95 function parser v1.1 by Roland Schmehl
@@ -181,4 +176,7 @@ by a valid exponent.
   Juha Nieminen <warp@iki.fi> available from [here](http://warp.povusers.org/FunctionParser/).
 * The original code has been updated to Fortran 2008 by Jacob Williams. Development
   continues on [GitHub](https://github.com/jacobwilliams/fortran_function_parser).
-* Note that another refactoring of the original code is available [here](https://github.com/jacopo-chevallard/FortranParser).
+
+### Other codes
+* [FortranParser](https://github.com/jacopo-chevallard/FortranParser) -- Another refactoring of the original code by Jacopo Chevallard.
+* [Fortran Function Parser](http://www.labfit.net/functionparser.htm) -- An entirely different code by Wilton and Ivomar,  10/01/2007
