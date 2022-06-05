@@ -22,15 +22,40 @@
 !  * Copyright (c) 2017, Jacob Williams. All rights reserved.
 !  * This software is distributable under the BSD license. See the terms of the
 !    BSD license in the documentation provided with this software.
+!
+!@note The default real kind (`wp`) can be
+!      changed using optional preprocessor flags.
+!      This library was built with real kind:
+#ifdef REAL32
+!      `real(kind=real32)` [4 bytes]
+#elif REAL64
+!      `real(kind=real64)` [8 bytes]
+#elif REAL128
+!      `real(kind=real128)` [16 bytes]
+#else
+!      `real(kind=real64)` [8 bytes]
+#endif
 
     module function_parser
 
     use error_module,    only: list_of_errors
-    use iso_fortran_env, only: wp => real64
+    use iso_fortran_env
 
     implicit none
 
     private
+
+#ifdef REAL32
+    integer,parameter,public :: fparser_rk = real32   !! real kind used by this module [4 bytes]
+#elif REAL64
+    integer,parameter,public :: fparser_rk = real64   !! real kind used by this module [8 bytes]
+#elif REAL128
+    integer,parameter,public :: fparser_rk = real128  !! real kind used by this module [16 bytes]
+#else
+    integer,parameter,public :: fparser_rk = real64   !! real kind used by this module [8 bytes]
+#endif
+
+    integer,parameter :: wp = fparser_rk  !! local copy of `fparser_rk` with a shorter name
 
     !parameters:
     real(wp), parameter :: zero = 0.0_wp
@@ -253,6 +278,7 @@
         subroutine stack_func(me,ip,dp,sp,val,ierr)
             !! a function that operates on the stack
             import :: wp,fparser
+            implicit none
             class(fparser),intent(inout)     :: me
             integer,intent(in)               :: ip    !! instruction pointer
             integer,intent(inout)            :: dp    !! data pointer

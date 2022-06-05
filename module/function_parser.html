@@ -85,12 +85,12 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title="95.2% of total for modules and submodules.">1399 statements</a>
+    title="95.2% of total for modules and submodules.">1402 statements</a>
      </li> 
-    <li><i class="fa fa-code"></i><a href="../src/function_parser.f90"> Source File</a></li>
+    <li><i class="fa fa-code"></i><a href="../src/function_parser.F90"> Source File</a></li>
   </ul>
   <ol class="breadcrumb in-well text-right">
-     <li><a href='../sourcefile/function_parser.f90.html'>function_parser.f90</a></li>
+     <li><a href='../sourcefile/function_parser.f90.html'>function_parser.F90</a></li>
      <li class="active">function_parser</li>
   </ol>
 </div>
@@ -109,6 +109,14 @@
     <div id="sidebar">
   <h3>Contents</h3>
  
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      <a class="list-group-item" href="../module/function_parser.html#variable-fparser_rk">fparser_rk</a>
+    </div>
+  </div>
+</div>
 <div class="panel panel-primary">
   <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#types-0">Derived Types</a></h3></div>
   <div id="types-0" class="panel-collapse collapse">
@@ -146,6 +154,10 @@
 <li>This software is distributable under the BSD license. See the terms of the
     BSD license in the documentation provided with this software.</li>
 </ul>
+<p></p><div class="alert alert-info" role="alert"><h4>Note</h4><p>The default real kind (<code>wp</code>) can be
+      changed using optional preprocessor flags.
+      This library was built with real kind:
+      <code>real(kind=real64)</code> [8 bytes]</p></div>
 <br>        <div class="panel panel-default">
       <div class="panel-heading">
   <h3 class="panel-title">Uses</h3>
@@ -153,8 +165,8 @@
       <ul class="list-group">
       <li class="list-group-item">
   <ul class="list-inline">
-    <li><a href='../module/error_module.html'>error_module</a></li>
     <li><a href="https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fFORTRAN_005fENV.html">iso_fortran_env</a></li>
+    <li><a href='../module/error_module.html'>error_module</a></li>
   </ul>
       </li>
       <li class="list-group-item">
@@ -175,35 +187,35 @@
 <polygon fill="none" stroke="black" points="226,-45 130,-45 130,-21 226,-21 226,-45"/>
 <text text-anchor="middle" x="178" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">function_parser</text>
 </g>
-<!-- module~error_module -->
-<g id="module~~function_parser~~UsesGraph_node2" class="node">
-<title>module~error_module</title>
-<g id="a_module~~function_parser~~UsesGraph_node2"><a xlink:href=".././module/error_module.html" xlink:title="error_module">
-<polygon fill="#337ab7" stroke="#337ab7" points="89.5,-66 4.5,-66 4.5,-42 89.5,-42 89.5,-66"/>
-<text text-anchor="middle" x="47" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">error_module</text>
-</a>
-</g>
-</g>
-<!-- module~function_parser&#45;&gt;module~error_module -->
-<g id="module~~function_parser~~UsesGraph_edge1" class="edge">
-<title>module~function_parser&#45;&gt;module~error_module</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M129.7,-40.7C119.98,-42.28 109.71,-43.95 99.85,-45.56"/>
-<polygon fill="#000000" stroke="#000000" points="99.07,-42.14 89.76,-47.2 100.19,-49.05 99.07,-42.14"/>
-</g>
 <!-- iso_fortran_env -->
-<g id="module~~function_parser~~UsesGraph_node3" class="node">
+<g id="module~~function_parser~~UsesGraph_node2" class="node">
 <title>iso_fortran_env</title>
-<g id="a_module~~function_parser~~UsesGraph_node3"><a xlink:href="https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fFORTRAN_005fENV.html" xlink:title="iso_fortran_env">
-<polygon fill="#337ab7" stroke="#337ab7" points="94,-24 0,-24 0,0 94,0 94,-24"/>
-<text text-anchor="middle" x="47" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+<g id="a_module~~function_parser~~UsesGraph_node2"><a xlink:href="https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fFORTRAN_005fENV.html" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-66 0,-66 0,-42 94,-42 94,-66"/>
+<text text-anchor="middle" x="47" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
 </a>
 </g>
 </g>
 <!-- module~function_parser&#45;&gt;iso_fortran_env -->
-<g id="module~~function_parser~~UsesGraph_edge2" class="edge">
+<g id="module~~function_parser~~UsesGraph_edge1" class="edge">
 <title>module~function_parser&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M129.7,-25.3C121.32,-23.94 112.54,-22.51 103.95,-21.11"/>
-<polygon fill="#000000" stroke="#000000" points="104.44,-17.64 94.01,-19.49 103.31,-24.55 104.44,-17.64"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M129.7,-40.7C121.32,-42.06 112.54,-43.49 103.95,-44.89"/>
+<polygon fill="#000000" stroke="#000000" points="103.31,-41.45 94.01,-46.51 104.44,-48.36 103.31,-41.45"/>
+</g>
+<!-- module~error_module -->
+<g id="module~~function_parser~~UsesGraph_node3" class="node">
+<title>module~error_module</title>
+<g id="a_module~~function_parser~~UsesGraph_node3"><a xlink:href=".././module/error_module.html" xlink:title="error_module">
+<polygon fill="#337ab7" stroke="#337ab7" points="89.5,-24 4.5,-24 4.5,0 89.5,0 89.5,-24"/>
+<text text-anchor="middle" x="47" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">error_module</text>
+</a>
+</g>
+</g>
+<!-- module~function_parser&#45;&gt;module~error_module -->
+<g id="module~~function_parser~~UsesGraph_edge2" class="edge">
+<title>module~function_parser&#45;&gt;module~error_module</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M129.7,-25.3C119.98,-23.72 109.71,-22.05 99.85,-20.44"/>
+<polygon fill="#000000" stroke="#000000" points="100.19,-16.95 89.76,-18.8 99.07,-23.86 100.19,-16.95"/>
 </g>
 </g>
 </svg>
@@ -276,6 +288,14 @@
       <h3>Contents</h3>
  
 <div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      <a class="list-group-item" href="../module/function_parser.html#variable-fparser_rk">fparser_rk</a>
+    </div>
+  </div>
+</div>
+<div class="panel panel-primary">
   <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#types-1">Derived Types</a></h3></div>
   <div id="types-1" class="panel-collapse collapse">
     <div class="list-group">
@@ -289,6 +309,21 @@
     <br class="visible-xs visible-sm hidden-md">
 
 
+    <section>
+    <h2>Variables</h2>
+    <table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th><th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+<tbody>
+<tr>
+  <td><span class="anchor" id="variable-fparser_rk"></span>integer,</td>
+<td>public,</td>  <td>parameter</td><td>::</td>
+  <td><strong>fparser_rk</strong></td><td> =</td><td>real64</td><td><p>real kind used by this module [8 bytes]</p></td>
+</tr>
+</tbody>
+</table>
+
+    </section>
+    <br>
     
     
 
