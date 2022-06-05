@@ -1,4 +1,4 @@
-![fortran_function_parser](/media/logo.png)
+![fortran_function_parser](media/logo.png)
 ============
 
 ### Status
