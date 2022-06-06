@@ -97,6 +97,7 @@ mathematical fortran-style expressions is specified at runtime and is
 then evaluated for a large number of variable values. This is done by
 compiling the set of function strings into byte code, which is
 interpreted efficiently for the various variable values.</p>
+<p>This code is a modernized version of <a href="http://fparser.sourceforge.net">fparser</a> (v1.1), a Fortran 95 function parser (v1.1) by <a href="roland.schmehl@alumni.uni-karlsruhe.de">Roland Schmehl</a>. The function parser concept is based on a C++ class library written by Juha Nieminen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#119;&#97;&#114;&#112;&#64;&#105;&#107;&#105;&#46;&#102;&#105;">&#119;&#97;&#114;&#112;&#64;&#105;&#107;&#105;&#46;&#102;&#105;</a> available from <a href="http://warp.povusers.org/FunctionParser/">here</a>. The original code has been updated to Fortran 2008 by Jacob Williams. Development continues on <a href="https://github.com/jacobwilliams/fortran_function_parser">GitHub</a>.</p>
 <h3>Building</h3>
 <p>The library can be built with the <a href="https://github.com/fortran-lang/fpm">Fortran Package Manager</a> using the provided <code>fpm.toml</code> file like so:</p>
 <div class="codehilite"><pre><span></span><code>fpm build --release
@@ -224,22 +225,28 @@ as explicit constants these must conform to the format</p>
 one digit before or following an optional decimal point. Valid exponent
 identifiers are 'e', 'E', 'd' or 'D'. If they appear they must be followed
 by a valid exponent.</p>
-<h3>Credits</h3>
-<ul>
-<li>This code is based on Fortran 95 function parser v1.1 by Roland Schmehl
-  <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#111;&#108;&#97;&#110;&#100;&#46;&#115;&#99;&#104;&#109;&#101;&#104;&#108;&#64;&#97;&#108;&#117;&#109;&#110;&#105;&#46;&#117;&#110;&#105;&#45;&#107;&#97;&#114;&#108;&#115;&#114;&#117;&#104;&#101;&#46;&#100;&#101;">&#114;&#111;&#108;&#97;&#110;&#100;&#46;&#115;&#99;&#104;&#109;&#101;&#104;&#108;&#64;&#97;&#108;&#117;&#109;&#110;&#105;&#46;&#117;&#110;&#105;&#45;&#107;&#97;&#114;&#108;&#115;&#114;&#117;&#104;&#101;&#46;&#100;&#101;</a>. The source code is available
-  from <a href="http://fparser.sourceforge.net">here</a>.</li>
-<li>The function parser concept is based on a C++ class library written by
-  Juha Nieminen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#119;&#97;&#114;&#112;&#64;&#105;&#107;&#105;&#46;&#102;&#105;">&#119;&#97;&#114;&#112;&#64;&#105;&#107;&#105;&#46;&#102;&#105;</a> available from <a href="http://warp.povusers.org/FunctionParser/">here</a>.</li>
-<li>The original code has been updated to Fortran 2008 by Jacob Williams. Development
-  continues on <a href="https://github.com/jacobwilliams/fortran_function_parser">GitHub</a>.</li>
-</ul>
 <h3>Other codes</h3>
+<p>There are various other expression parsers out there written in Fortran:</p>
+<div class="codehilite"><pre><span></span><code>flowchart TB
+    fparser[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;http://fparser.sourceforge.net&#39;</span><span class="nt">&gt;</span>fparser<span class="nt">&lt;/a&gt;</span>]
+    fparser--&gt;FortranParser[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;https://github.com/jacopo-chevallard/FortranParser&#39;</span><span class="nt">&gt;</span>FortranParser<span class="nt">&lt;/a&gt;</span>]
+    fparser--&gt;fortran_function_parser[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;https://github.com/jacobwilliams/fortran_function_parser&#39;</span><span class="nt">&gt;</span>fortran_function_parser<span class="nt">&lt;/a&gt;</span>]
+    fortran_parser--&gt;fortran_script[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;https://github.com/sdm900/fortran_script&#39;</span><span class="nt">&gt;</span>fortran_script<span class="nt">&lt;/a&gt;</span>]
+    ffp[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;http://www.labfit.net/functionparser.htm&#39;</span><span class="nt">&gt;</span>Fortran Function Parser<span class="nt">&lt;/a&gt;</span>]
+    feq-parse[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;https://github.com/FluidNumerics/feq-parse&#39;</span><span class="nt">&gt;</span>feq-parse<span class="nt">&lt;/a&gt;</span>]
+    fortran_parser[<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&#39;https://github.com/sdm900/fortran_parser&#39;</span><span class="nt">&gt;</span>fortran_parser<span class="nt">&lt;/a&gt;</span>]
+</code></pre></div>
+
 <ul>
-<li><a href="https://github.com/jacopo-chevallard/FortranParser">FortranParser</a> -- Another refactoring of the original code by Jacopo Chevallard.</li>
-<li><a href="http://www.labfit.net/functionparser.htm">Fortran Function Parser</a> -- An entirely different code by Wilton and Ivomar,  10/01/2007</li>
+<li><a href="http://fparser.sourceforge.net">fparser</a> -- Original Fortran 95 function parser by Roland Schmehl.</li>
+<li><a href="https://github.com/jacopo-chevallard/FortranParser">FortranParser</a> -- Another refactoring of the original <code>fparser</code> code by Jacopo Chevallard.</li>
+<li><a href="http://www.labfit.net/functionparser.htm">Fortran Function Parser</a> -- An entirely different code by Wilton and Ivomar, 10/01/2007 (GitHub mirror <a href="https://github.com/jacobwilliams/ffp">here</a>).</li>
 <li><a href="https://github.com/FluidNumerics/feq-parse">feq-parse</a> -- Fortran Equation Parser from FluidNumerics.</li>
 <li><a href="https://github.com/sdm900/fortran_parser">fortran_parser</a> -- Fortran Equation Parser from Stuart Midgley.</li>
+</ul>
+<h3>See also</h3>
+<ul>
+<li><a href="https://ntrs.nasa.gov/api/citations/20180000413/downloads/20180000413.pdf">Application of Modern Fortran to Spacecraft Trajectory Design and Optimization</a> (AIAA 2018-1451) describes a method of constructing a Fortran expression parser using binary syntax trees.</li>
 </ul>
         </div>
         <div class="col-md-4">
