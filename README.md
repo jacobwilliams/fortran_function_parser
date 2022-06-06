@@ -181,3 +181,4 @@ by a valid exponent.
 * [FortranParser](https://github.com/jacopo-chevallard/FortranParser) -- Another refactoring of the original code by Jacopo Chevallard.
 * [Fortran Function Parser](http://www.labfit.net/functionparser.htm) -- An entirely different code by Wilton and Ivomar,  10/01/2007
 * [feq-parse](https://github.com/FluidNumerics/feq-parse) -- Fortran Equation Parser from FluidNumerics.
+* [fortran_parser](https://github.com/sdm900/fortran_parser) -- Fortran Equation Parser from Stuart Midgley.
