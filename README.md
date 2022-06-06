@@ -16,6 +16,8 @@ then evaluated for a large number of variable values. This is done by
 compiling the set of function strings into byte code, which is
 interpreted efficiently for the various variable values.
 
+This code is a modernized version of [fparser](http://fparser.sourceforge.net) (v1.1), a Fortran 95 function parser (v1.1) by [Roland Schmehl](roland.schmehl@alumni.uni-karlsruhe.de). The function parser concept is based on a C++ class library written by Juha Nieminen <warp@iki.fi> available from [here](http://warp.povusers.org/FunctionParser/). The original code has been updated to Fortran 2008 by Jacob Williams. Development continues on [GitHub](https://github.com/jacobwilliams/fortran_function_parser).
+
 ### Building
 
 The library can be built with the [Fortran Package Manager](https://github.com/fortran-lang/fpm) using the provided `fpm.toml` file like so:
@@ -167,18 +169,27 @@ one digit before or following an optional decimal point. Valid exponent
 identifiers are 'e', 'E', 'd' or 'D'. If they appear they must be followed
 by a valid exponent.
 
-### Credits
-
-* This code is based on Fortran 95 function parser v1.1 by Roland Schmehl
-  <roland.schmehl@alumni.uni-karlsruhe.de>. The source code is available
-  from [here](http://fparser.sourceforge.net).
-* The function parser concept is based on a C++ class library written by
-  Juha Nieminen <warp@iki.fi> available from [here](http://warp.povusers.org/FunctionParser/).
-* The original code has been updated to Fortran 2008 by Jacob Williams. Development
-  continues on [GitHub](https://github.com/jacobwilliams/fortran_function_parser).
-
 ### Other codes
-* [FortranParser](https://github.com/jacopo-chevallard/FortranParser) -- Another refactoring of the original code by Jacopo Chevallard.
-* [Fortran Function Parser](http://www.labfit.net/functionparser.htm) -- An entirely different code by Wilton and Ivomar,  10/01/2007
+
+There are various other expression parsers out there written in Fortran:
+
+```mermaid
+flowchart TB
+	fparser[<a href='http://fparser.sourceforge.net'>fparser</a>]
+	fparser-->FortranParser[<a href='https://github.com/jacopo-chevallard/FortranParser'>FortranParser</a>]
+	fparser-->fortran_function_parser[<a href='https://github.com/jacobwilliams/fortran_function_parser'>fortran_function_parser</a>]
+	fortran_parser-->fortran_script[<a href='https://github.com/sdm900/fortran_script'>fortran_script</a>]
+	ffp[<a href='http://www.labfit.net/functionparser.htm'>Fortran Function Parser</a>]
+	feq-parse[<a href='https://github.com/FluidNumerics/feq-parse'>feq-parse</a>]
+	fortran_parser[<a href='https://github.com/sdm900/fortran_parser'>fortran_parser</a>]
+```
+
+* [fparser](http://fparser.sourceforge.net) -- Original Fortran 95 function parser by Roland Schmehl.
+* [FortranParser](https://github.com/jacopo-chevallard/FortranParser) -- Another refactoring of the original `fparser` code by Jacopo Chevallard.
+* [Fortran Function Parser](http://www.labfit.net/functionparser.htm) -- An entirely different code by Wilton and Ivomar, 10/01/2007 (GitHub mirror [here](https://github.com/jacobwilliams/ffp)).
 * [feq-parse](https://github.com/FluidNumerics/feq-parse) -- Fortran Equation Parser from FluidNumerics.
 * [fortran_parser](https://github.com/sdm900/fortran_parser) -- Fortran Equation Parser from Stuart Midgley.
+
+### See also
+
+* [Application of Modern Fortran to Spacecraft Trajectory Design and Optimization](https://ntrs.nasa.gov/api/citations/20180000413/downloads/20180000413.pdf) (AIAA 2018-1451) describes a method of constructing a Fortran expression parser using binary syntax trees.
