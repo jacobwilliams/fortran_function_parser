@@ -193,3 +193,4 @@ flowchart TB
 ### See also
 
 * [Application of Modern Fortran to Spacecraft Trajectory Design and Optimization](https://ntrs.nasa.gov/api/citations/20180000413/downloads/20180000413.pdf) (AIAA 2018-1451) describes a method of constructing a Fortran expression parser using binary syntax trees.
+* [Dynamic Eval for Fortran](https://github.com/j3-fortran/fortran_proposals/issues/126) Suggestion to add dynamic expression evaluation to the Fortran language (don't hold your breath).
