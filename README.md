@@ -182,6 +182,9 @@ flowchart TB
 	ffp[<a href='http://www.labfit.net/functionparser.htm'>Fortran Function Parser</a>]
 	feq-parse[<a href='https://github.com/FluidNumerics/feq-parse'>feq-parse</a>]
 	fortran_parser[<a href='https://github.com/sdm900/fortran_parser'>fortran_parser</a>]
+	M_calculator[<a href='https://github.com/urbanjost/M_calculator'>M_calculator</a>]
+	M_calculator-->compute[<a href='https://github.com/urbanjost/compute'>compute</a>]
+
 ```
 
 * [fparser](http://fparser.sourceforge.net) -- Original Fortran 95 function parser by Roland Schmehl.
@@ -189,6 +192,7 @@ flowchart TB
 * [Fortran Function Parser](http://www.labfit.net/functionparser.htm) -- An entirely different code by Wilton and Ivomar, 10/01/2007 (GitHub mirror [here](https://github.com/jacobwilliams/ffp)).
 * [feq-parse](https://github.com/FluidNumerics/feq-parse) -- Fortran Equation Parser from FluidNumerics.
 * [fortran_parser](https://github.com/sdm900/fortran_parser) -- Fortran Equation Parser from Stuart Midgley.
+* [M_calculator](https://github.com/urbanjost/M_calculator) -- Parse Fortran-like double precision scalar expressions from urbanjost
 
 ### See also
 
